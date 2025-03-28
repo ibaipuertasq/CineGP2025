@@ -6,11 +6,9 @@ public class Asiento {
     private TipoAsiento tipo;
     private boolean ocupado;
 
-    // Constructor por defecto
     public Asiento() {
     }
 
-    // Constructor con parámetros
     public Asiento(long id, int numero, TipoAsiento tipo, boolean ocupado) {
         this.id = id;
         this.numero = numero;
@@ -18,7 +16,6 @@ public class Asiento {
         this.ocupado = ocupado;
     }
 
-    // Getters y setters
     public long getId() {
         return id;
     }
@@ -51,7 +48,6 @@ public class Asiento {
         this.ocupado = ocupado;
     }
 
-    // Método toString
     @Override
     public String toString() {
         return "Asiento{" +
@@ -60,5 +56,9 @@ public class Asiento {
                 ", tipo=" + tipo +
                 ", ocupado=" + ocupado +
                 '}';
+    }
+
+    public String toStringCorto() {
+        return "Asiento " + numero + " (" + tipo + ") - " + (ocupado ? "Ocupado" : "Libre");
     }
 }

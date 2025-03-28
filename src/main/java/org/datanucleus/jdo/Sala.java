@@ -8,11 +8,9 @@ public class Sala {
     private int capacidad;
     private List<Asiento> asientos;
 
-    // Constructor por defecto
     public Sala() {
     }
 
-    // Constructor con parámetros
     public Sala(long id, int numero, int capacidad, List<Asiento> asientos) {
         this.id = id;
         this.numero = numero;
@@ -20,7 +18,6 @@ public class Sala {
         this.asientos = asientos;
     }
 
-    // Getters y setters
     public long getId() {
         return id;
     }
@@ -53,7 +50,6 @@ public class Sala {
         this.asientos = asientos;
     }
 
-    // Método toString
     @Override
     public String toString() {
         return "Sala{" +
@@ -62,5 +58,9 @@ public class Sala {
                 ", capacidad=" + capacidad +
                 ", asientos=" + asientos +
                 '}';
+    }
+
+    public String toStringCorto() {
+        return "Sala " + numero + " con capacidad de " + capacidad + " asientos.";
     }
 }

@@ -8,11 +8,9 @@ public class Usuario {
     private String telefono;
     private TipoUsuario tipoUsuario;
 
-    // Constructor por defecto
     public Usuario() {
     }
 
-    // Constructor con parámetros
     public Usuario(String dni, String nombre, String apellidos, String email, String telefono, TipoUsuario tipoUsuario) {
         this.dni = dni;
         this.nombre = nombre;
@@ -71,7 +69,6 @@ public class Usuario {
         this.tipoUsuario = tipoUsuario;
     }
 
-    // toString por defecto3
     @Override
     public String toString() {
         return "Usuario{" +
@@ -84,11 +81,8 @@ public class Usuario {
                 '}';
     }
 
-    // toString corto
-    public String toShortString() {
-        return "Usuario{" +
-                "dni='" + dni + '\'' +
-                ", nombre='" + nombre + '\'' +
-                '}';
+
+    public String toStringCorto() {
+        return "Usuario " + nombre + " con DNI:" + dni;
     }
 }
