@@ -1,10 +1,15 @@
 package org.datanucleus.jdo;
+import javax.jdo.annotations.*;
 
+@PersistenceCapable
 public class Asiento {
+    @PrimaryKey
+    @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     private long id;
-    private int numero;
-    private TipoAsiento tipo;
-    private boolean ocupado;
+    
+    @Persistent private int numero;
+    @Persistent private TipoAsiento tipo;
+    @Persistent private boolean ocupado;
 
     public Asiento() {
     }

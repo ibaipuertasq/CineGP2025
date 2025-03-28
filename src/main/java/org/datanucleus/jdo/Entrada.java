@@ -1,15 +1,28 @@
 package org.datanucleus.jdo;
 
+import javax.jdo.annotations.IdGeneratorStrategy;
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.PrimaryKey;
+
 /**
  * Represents an entry for an event.
  */
+@PersistenceCapable
 public class Entrada {
+    @PrimaryKey
+    @Persistent(valueStrategy=IdGeneratorStrategy.IDENTITY)
     private long id;
+
+    @Persistent(defaultFetchGroup = "true")
     private Usuario usuario;
+
+    @Persistent(defaultFetchGroup = "true")
     private Cine cine;
-    private int precio;
-    private int asiento;
-    private TipoAsiento tipoAsiento;
+
+    @Persistent private int precio;
+    @Persistent private int asiento;
+    @Persistent private TipoAsiento tipoAsiento;
 
     public Entrada() {
         this.usuario = new Usuario();

@@ -1,12 +1,16 @@
 package org.datanucleus.jdo;
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.*;
 
+@PersistenceCapable
 public class Usuario {
-    private String dni;
-    private String nombre;
-    private String apellidos;
-    private String email;
-    private String telefono;
-    private TipoUsuario tipoUsuario;
+    @Persistent private String nombre;
+    @Persistent private String apellidos; 
+    @Persistent private String email;
+    @Persistent private String direccion;
+    @Persistent private String telefono;
+    @Persistent private TipoUsuario tipoUsuario;   
+    @PrimaryKey private String dni;
 
     public Usuario() {
     }

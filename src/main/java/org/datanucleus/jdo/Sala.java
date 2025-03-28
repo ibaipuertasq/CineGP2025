@@ -1,12 +1,16 @@
 package org.datanucleus.jdo;
-
+import javax.jdo.annotations.*;
 import java.util.List;
 
+@PersistenceCapable
 public class Sala {
+    @PrimaryKey
+    @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     private long id;
-    private int numero;
-    private int capacidad;
-    private List<Asiento> asientos;
+    
+    @Persistent private int numero;
+    @Persistent private int capacidad;
+    @Persistent private List<Asiento> asientos;
 
     public Sala() {
     }

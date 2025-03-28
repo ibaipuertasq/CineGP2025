@@ -1,22 +1,25 @@
 package org.datanucleus.jdo;
+import javax.jdo.annotations.*;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+@PersistenceCapable
 public class Pelicula {
+    @PrimaryKey
+    @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     private long id;
-
-    private String titulo;
-    private String genero;
-    private int duracion; // en minutos
-    private Date fechaEstreno;
-    private String director;
-    private String sinopsis;
-
-    private List<String> horarios; // Horarios de proyección
-
-    private Sala sala; // Sala donde se proyecta
+    
+    @Persistent private String titulo;
+    @Persistent private String genero;
+    @Persistent private int duracion; // en minutos
+    @Persistent private Date fechaEstreno;
+    @Persistent private String director;
+    @Persistent private String sinopsis;
+    @Persistent private List<String> horarios; // Horarios de proyección
+    @Persistent private Sala sala; // Sala donde se proyecta
+    
 
     // Constructor vacío
     public Pelicula() {}

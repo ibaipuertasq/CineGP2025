@@ -1,11 +1,15 @@
 package org.datanucleus.jdo;
 import java.util.List;
 
+@PersistenceCapable
 public class Cine {
+    @PrimaryKey
+    @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     private long id;
-    private String nombre;
-    private String direccion;
-    private List<Sala> salas;
+    
+    @Persistent private String nombre;
+    @Persistent private String direccion;
+    @Persistent private List<Sala> salas;
 
     // Constructor por defecto
     public Cine() {

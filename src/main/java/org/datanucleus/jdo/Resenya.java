@@ -1,10 +1,22 @@
 package org.datanucleus.jdo;
 
+import javax.jdo.annotations.IdGeneratorStrategy;
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.PrimaryKey;
+
+@PersistenceCapable
 public class Resenya {
+    @PrimaryKey
+    @Persistent(valueStrategy = IdGeneratorStrategy.IDENTITY)
     private long id;
+    @Persistent
     private String comentario;
+    @Persistent
     private int puntuacion; // 1-5 estrellas
+    @Persistent(defaultFetchGroup = "true")
     private Usuario usuario;
+    @Persistent(defaultFetchGroup = "true")
     private Pelicula pelicula;
 
     // Getters y Setters
