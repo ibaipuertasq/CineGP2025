@@ -117,4 +117,23 @@ public class Resource {
 
 		}
 	}
+
+	/**
+     * Logs out a user by removing their token.
+     *
+     * @param usuario The user to be logged out.
+     * @return A response indicating the logout status.
+     */
+    @POST
+    @Path("/logout")
+    public Response logoutUser(Usuario usuario) {
+        if (tokens.containsKey(usuario)) {
+            tokens.remove(usuario);
+            logger.info("User {} logged out successfully!", usuario.getNombre());
+            return Response.ok("User logged out successfully").build();
+        } else {
+            logger.info("Logout attempt failed: User {} not found or not logged in", usuario.getNombre());
+            return Response.status(Response.Status.UNAUTHORIZED).entity("User not logged in").build();
+        }
+    }
 }
