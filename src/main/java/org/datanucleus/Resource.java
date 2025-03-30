@@ -10,9 +10,10 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 import javax.jdo.Transaction;
-
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -183,7 +184,43 @@ public class Resource {
 		}
 	}
 
-    
+	/**
+	 * Deletes an film from the server.
+	 * 
+	 * @param id the ID of the film to be deleted
+	 * @return a Response object indicating the status of the operation
+	 */
+	@DELETE
+	@Path("/eliminarPelicula/{id}")
+	public Response eliminarEvento(@PathParam("id") String id) {
+		try {
+			tx.begin();
+
+			Pelicula peli = null;
+
+			try {
+				peli = pm.getObjectById(Pelicula.class, id);
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Exception launched: {}", jonfe.getMessage());
+			}
+
+			if (peli != null) {
+				logger.info("Deleting event: {}", peli);
+				pm.deletePersistent(peli);
+				tx.commit();
+				return Response.ok().build();
+			} else {
+				logger.info("Event not found");
+				tx.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Film not found").build();
+			}
+		} finally {
+			if (tx.isActive()) {
+				tx.rollback();
+			}
+			pm.close();
+		}
+	}
     
     
 }
