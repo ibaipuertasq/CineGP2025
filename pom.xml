@@ -5,9 +5,10 @@
 
   <groupId>org.datanucleus</groupId>
   <artifactId>CineGP2025</artifactId>
+  <packaging>war</packaging>
   <version>1.0-SNAPSHOT</version>
-
   <name>CineGP2025</name>
+
   <url>http://www.example.com</url>
 
   <properties>
