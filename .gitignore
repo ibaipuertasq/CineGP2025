@@ -6,3 +6,4 @@ target/
 *.log
 
 /.mvn
+.settings/org.eclipse.core.resources.prefs
