@@ -23,6 +23,7 @@ import org.datanucleus.jdo.TipoUsuario;
 import org.datanucleus.jdo.Usuario;
 
 
+
 @Path("/resource")
 @Produces(MediaType.APPLICATION_JSON)
 public class Resource {
@@ -192,7 +193,7 @@ public class Resource {
 	 */
 	@DELETE
 	@Path("/eliminarPelicula/{id}")
-	public Response eliminarEvento(@PathParam("id") String id) {
+	public Response eliminarpelicula(@PathParam("id") String id) {
 		try {
 			tx.begin();
 
@@ -205,12 +206,12 @@ public class Resource {
 			}
 
 			if (peli != null) {
-				logger.info("Deleting event: {}", peli);
+				logger.info("Deleting peli: {}", peli);
 				pm.deletePersistent(peli);
 				tx.commit();
 				return Response.ok().build();
 			} else {
-				logger.info("Event not found");
+				logger.info("peli not found");
 				tx.rollback();
 				return Response.status(Response.Status.NOT_FOUND).entity("Film not found").build();
 			}
@@ -222,5 +223,58 @@ public class Resource {
 		}
 	}
     
-    
+
+	/**
+	 * This method is used to update an pelicula object and return a Response.
+	 * 
+	 * @param pelicula The pelicula object containing the updated information.
+	 * @return A Response indicating the success or failure of the update operation.
+	 */
+	@POST
+	@Path("/actualizarPelicula")
+	public Response actualizarpelicula(Pelicula pelicula) {
+		try {
+			tx.begin();
+
+			Pelicula peli = null;
+
+			try {
+				peli = pm.getObjectById(Pelicula.class, pelicula.getId());
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Exception launched: {}", jonfe.getMessage());
+			}
+
+			if (peli != null) {
+				Response response = eliminarpelicula(String.valueOf(peli.getId()));
+				if (response.getStatus() == 200) {
+					peli.setTitulo(pelicula.getTitulo());
+					peli.setGenero(pelicula.getGenero());
+					peli.setDuracion(pelicula.getDuracion());
+					peli.setFechaEstreno(pelicula.getFechaEstreno());
+					peli.setDirector(pelicula.getDirector());
+					peli.setSinopsis(pelicula.getSinopsis());
+					peli.setHorarios(pelicula.getHorarios());
+					peli.setSala(pelicula.getSala());
+
+					logger.info("peli updated: {}", peli);
+					tx.commit();
+					return Response.ok().build();
+				} else {
+					logger.info("peli not found");
+					tx.rollback();
+					return Response.status(Response.Status.NOT_FOUND).entity("peli not deleted").build();
+				}
+			} else {
+				logger.info("peli not found");
+				tx.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("peli not found").build();
+			}
+		} finally {
+			if (tx.isActive()) {
+				tx.rollback();
+			}
+			pm.close();
+		}
+	}
+
 }
