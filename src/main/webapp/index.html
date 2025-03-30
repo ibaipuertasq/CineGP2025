@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Login Form -->
+    <div class="container" id="loginContainer">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginUsername">Username:</label>
+                <input type="text" id="loginUsername" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password:</label>
+                <input type="password" id="loginPassword" required>
+            </div>
+            <button type="submit">Login</button>
+            <button type="button" id="showRegisterBtn">Register</button>
+        </form>
+        <div id="loginMessage" class="message"></div>
+    </div>
+
+    <!-- Register Form (hidden by default) -->
+    <div class="container" id="registerContainer" style="display: none;">
+        <h2>Register</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="dni">DNI:</label>
+                <input type="text" id="dni" required>
+            </div>
+            <div class="form-group">
+                <label for="nombre">Name:</label>
+                <input type="text" id="nombre" required>
+            </div>
+            <div class="form-group">
+                <label for="apellidos">Last Name:</label>
+                <input type="text" id="apellidos" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" required>
+            </div>
+            <div class="form-group">
+                <label for="direccion">Address:</label>
+                <input type="text" id="direccion" required>
+            </div>
+            <div class="form-group">
+                <label for="telefono">Phone:</label>
+                <input type="tel" id="telefono" required>
+            </div>
+            <button type="submit">Register</button>
+            <button type="button" id="backToLoginBtn">Back to Login</button>
+        </form>
+        <div id="registerMessage" class="message"></div>
+    </div>
+
+    <!-- Logged In State (hidden by default) -->
+    <div class="container" id="loggedInContainer" style="display: none;">
+        <h2>Welcome</h2>
+        <p>You are logged in!</p>
+        <button id="logoutBtn">Logout</button>
+        <div id="logoutMessage" class="message"></div>
+    </div>
+
+    <script>
+        let isLoggedIn = false;
+        let currentUser = null;
+
+        // Show/hide containers based on login state
+        function updateUI() {
+            document.getElementById('loginContainer').style.display = isLoggedIn ? 'none' : 'block';
+            document.getElementById('registerContainer').style.display = 'none';
+            document.getElementById('loggedInContainer').style.display = isLoggedIn ? 'block' : 'none';
+        }
+
+        // Login Form Submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch('/resource/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nombreUsuario: username,
+                        contrasenya: password
+                    })
+                });
+                
+                const messageDiv = document.getElementById('loginMessage');
+                messageDiv.style.display = 'block';
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                    isLoggedIn = true;
+                    messageDiv.className = 'message success';
+                    messageDiv.textContent = 'Login successful!';
+                    setTimeout(() => {
+                        updateUI();
+                        messageDiv.style.display = 'none';
+                    }, 1000);
+                } else {
+                    messageDiv.className = 'message error';
+                    messageDiv.textContent = await response.text();
+                }
+            } catch (error) {
+                showMessage('loginMessage', 'Error connecting to server', false);
+            }
+        });
+
+        // Show Register Form
+        document.getElementById('showRegisterBtn').addEventListener('click', () => {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('registerContainer').style.display = 'block';
+        });
+
+        // Back to Login
+        document.getElementById('backToLoginBtn').addEventListener('click', () => {
+            document.getElementById('registerContainer').style.display = 'none';
+            document.getElementById('loginContainer').style.display = 'block';
+        });
+
+        // Register Form Submission
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userData = {
+                dni: document.getElementById('dni').value,
+                nombre: document.getElementById('nombre').value,
+                apellidos: document.getElementById('apellidos').value,
+                email: document.getElementById('email').value,
+                contrasenya: document.getElementById('password').value,
+                direccion: document.getElementById('direccion').value,
+                telefono: document.getElementById('telefono').value
+            };
+
+            try {
+                const response = await fetch('/resource/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                showMessage('registerMessage', 
+                    response.ok ? 'Registration successful! Please login.' : await response.text(),
+                    response.ok);
+                
+                if (response.ok) {
+                    setTimeout(() => {
+                        document.getElementById('registerContainer').style.display = 'none';
+                        document.getElementById('loginContainer').style.display = 'block';
+                        document.getElementById('registerMessage').style.display = 'none';
+                    }, 1000);
+                }
+            } catch (error) {
+                showMessage('registerMessage', 'Error connecting to server', false);
+            }
+        });
+
+        // Logout Button
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/resource/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentUser)
+                });
+
+                if (response.ok) {
+                    isLoggedIn = false;
+                    currentUser = null;
+                    showMessage('logoutMessage', 'Logout successful!', true);
+                    setTimeout(() => {
+                        updateUI();
+                        document.getElementById('logoutMessage').style.display = 'none';
+                    }, 1000);
+                } else {
+                    showMessage('logoutMessage', await response.text(), false);
+                }
+            } catch (error) {
+                showMessage('logoutMessage', 'Error connecting to server', false);
+            }
+        });
+
+        // Helper function to show messages
+        function showMessage(elementId, message, isSuccess) {
+            const messageDiv = document.getElementById(elementId);
+            messageDiv.style.display = 'block';
+            messageDiv.className = `message ${isSuccess ? 'success' : 'error'}`;
+            messageDiv.textContent = message;
+        }
+
+        // Initial UI setup
+        updateUI();
+    </script>
+</body>
+</html>
