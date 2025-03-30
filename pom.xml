@@ -14,6 +14,10 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
+		<config.files.dir>${basedir}/src/main/resources</config.files.dir>
+		<jersey.version>2.35</jersey.version>
+		<server.hostname>127.0.0.1</server.hostname>
+		<server.port>8080</server.port>
   </properties>
 
   <dependencyManagement>
@@ -30,20 +34,31 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>javax.jdo</artifactId>
-      <version>[3.2.0-release, )</version>
-    </dependency>
+			<groupId>org.datanucleus</groupId>
+			<artifactId>javax.jdo</artifactId>
+			<version>[3.2.0-release, )</version>
+		</dependency>
+		<dependency>
+			<groupId>org.datanucleus</groupId>
+			<artifactId>datanucleus-core</artifactId>
+			<version>[6.0.0-m1, 6.9)</version>
+		</dependency>
+		<dependency>
+			<groupId>org.datanucleus</groupId>
+			<artifactId>datanucleus-api-jdo</artifactId>
+			<version>[6.0.0-m1, 6.9)</version>
+		</dependency>
+		<dependency>
+			<groupId>org.datanucleus</groupId>
+			<artifactId>datanucleus-rdbms</artifactId>
+			<version>[6.0.0-m1, 6.9)</version>
+		</dependency>
+    
     <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-core</artifactId>
-      <version>6.0.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.datanucleus</groupId>
-      <artifactId>datanucleus-api-jdo</artifactId>
-      <version>6.0.1</version>
-    </dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>8.0.29</version>
+		</dependency>
 
     <dependency>
       <groupId>javax.ws.rs</groupId>
@@ -74,18 +89,6 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
-    </dependency>
-
-    <!-- Jetty Server -->
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-server</artifactId>
-      <version>11.0.20</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
-      <version>11.0.20</version>
     </dependency>
 
     <!-- Jersey (JAX-RS Implementation) -->
@@ -141,6 +144,25 @@
           <version>3.4.0</version>
         </plugin>
         <!-- default lifecycle, jar packaging: see https://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
+        <plugin>
+          <groupId>org.datanucleus</groupId>
+          <artifactId>datanucleus-maven-plugin</artifactId>
+          <version>6.0.0-release</version>
+          <configuration>
+            <api>JDO</api> 
+            <verbose>true</verbose>
+            <props>src/main/resources/datanucleus.properties</props>
+            <!-- option required to avoid 'The command line is too long.' error in Windows -->
+            <fork>false</fork>
+          </configuration>
+			  </plugin>
+        
+        <plugin>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-maven-plugin</artifactId>
+          <version>9.4.46.v20220331</version>
+        </plugin>
+
         <plugin>
 				  <groupId>org.codehaus.mojo</groupId>
 				  <artifactId>exec-maven-plugin</artifactId>
