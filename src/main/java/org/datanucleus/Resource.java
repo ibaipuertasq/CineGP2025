@@ -17,8 +17,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.datanucleus.jdo.Pelicula;
 import org.datanucleus.jdo.TipoUsuario;
 import org.datanucleus.jdo.Usuario;
+
 
 @Path("/resource")
 @Produces(MediaType.APPLICATION_JSON)
@@ -136,4 +138,52 @@ public class Resource {
             return Response.status(Response.Status.UNAUTHORIZED).entity("User not logged in").build();
         }
     }
+    
+	/**
+	 * Creates a new peli in the system.
+	 * 
+	 * @param Pelicula The peli object containing the details of the peli to be
+	 *               created.
+	 * @return A Response object indicating the status of the operation.
+	 *         If the peli already exists, returns an UNAUTHORIZED response with an
+	 *         error message.
+	 *         If the peli is successfully created, returns an OK response.
+	 */
+	@POST
+	@Path("/crearPelicula")
+	public Response crearPelicula(Pelicula pelicula) {
+		System.out.println(pelicula);
+		try {
+			tx.begin();
+			Pelicula peli = null;
+
+			try {
+				peli = pm.getObjectById(Pelicula.class, pelicula.getId());
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Exception launched: {}", jonfe.getMessage());
+			}
+
+			if (peli != null) {
+				logger.info("film already exists!");
+				tx.rollback();
+				return Response.status(Response.Status.UNAUTHORIZED).entity("peli already exists").build();
+			} else {
+				logger.info("Creating peli: {}", peli);
+				peli = new Pelicula(pelicula.getTitulo(), pelicula.getGenero(), pelicula.getDuracion(), pelicula.getFechaEstreno(),
+						pelicula.getDirector(), pelicula.getSinopsis(), pelicula.getHorarios(), pelicula.getSala());
+				pm.makePersistent(peli);
+				logger.info("peli created: {}", peli);
+				tx.commit();
+				return Response.ok().build();
+			}
+		} finally {
+			if (tx.isActive()) {
+				tx.rollback();
+			}
+		}
+	}
+
+    
+    
+    
 }
