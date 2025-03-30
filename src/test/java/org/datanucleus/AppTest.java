@@ -1,9 +1,7 @@
 package org.datanucleus;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.Test;
-
+// import static org.junit.jupiter.api.Assertions.assertTrue;
+// import org.junit.jupiter.api.Test;
 
 /**
  * Unit test for simple App.
@@ -11,10 +9,10 @@ import org.junit.jupiter.api.Test;
 public class AppTest {
 
     /**
-     * Rigorous Test :-)
+     * Rigorous Test
      */
-    @Test
+    //@Test
     public void shouldAnswerWithTrue() {
-        assertTrue(true);
+       // assertTrue(true);
     }
 }
