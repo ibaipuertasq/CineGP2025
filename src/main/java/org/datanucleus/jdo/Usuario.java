@@ -1,5 +1,4 @@
 package org.datanucleus.jdo;
-import javax.jdo.annotations.PersistenceCapable;
 import javax.jdo.annotations.*;
 
 @PersistenceCapable
@@ -7,6 +6,7 @@ public class Usuario {
     @Persistent private String nombre;
     @Persistent private String apellidos; 
     @Persistent private String email;
+    @Persistent private String contrasenya;
     @Persistent private String direccion;
     @Persistent private String telefono;
     @Persistent private TipoUsuario tipoUsuario;   
@@ -15,11 +15,13 @@ public class Usuario {
     public Usuario() {
     }
 
-    public Usuario(String dni, String nombre, String apellidos, String email, String telefono, TipoUsuario tipoUsuario) {
+    public Usuario(String dni, String nombre, String apellidos, String email, String contrasenya, String direccion, String telefono, TipoUsuario tipoUsuario) {
         this.dni = dni;
         this.nombre = nombre;
         this.apellidos = apellidos;
         this.email = email;
+        this.contrasenya = contrasenya;
+        this.direccion = direccion;
         this.telefono = telefono;
         this.tipoUsuario = tipoUsuario;
     }
@@ -55,6 +57,22 @@ public class Usuario {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+    
+    public String getContrasenya() {
+        return contrasenya;
+    }
+
+    public void setContrasenya(String contrasenya) {
+        this.contrasenya = contrasenya;
+    }
+
+    public String getDireccion() {
+        return direccion;
+    }
+
+    public void setDireccion(String direccion) {
+        this.direccion = direccion;
     }
 
     public String getTelefono() {
