@@ -1,6 +1,7 @@
 package org.datanucleus;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,6 +12,7 @@ import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 import javax.jdo.Transaction;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -21,6 +23,8 @@ import javax.ws.rs.core.Response;
 import org.datanucleus.jdo.Pelicula;
 import org.datanucleus.jdo.TipoUsuario;
 import org.datanucleus.jdo.Usuario;
+
+
 
 
 
@@ -275,6 +279,40 @@ public class Resource {
 			}
 			pm.close();
 		}
+	}
+	
+	/**
+	 * Retrieves a list of events.
+	 * 
+	 * @return a Response object containing the list of events if found, or an
+	 *         unauthorized status with an error message if no events are found.
+	 */
+	@GET
+	@Path("/getPelicula")
+	public Response getPelicula() {
+		try {
+			tx.begin();
+			Query<Pelicula> query = pm.newQuery(Pelicula.class);
+
+			@SuppressWarnings("unchecked")
+			List<Pelicula> peliculas = (List<Pelicula>) query.execute();
+
+			if (peliculas != null) {
+				logger.info("{} events found", peliculas.size());
+				tx.commit();
+				return Response.ok(peliculas).build();
+			} else {
+				logger.info("No events found");
+				tx.rollback();
+				return Response.status(Response.Status.UNAUTHORIZED).entity("No events found").build();
+			}
+		} finally {
+			if (tx.isActive()) {
+				tx.rollback();
+			}
+			pm.close();
+		}
+
 	}
 
 }
