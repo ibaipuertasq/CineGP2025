@@ -11,6 +11,10 @@ Make sure that the database was correctly configured. Use the contents of the fi
 
       mysql –uroot -p < sql/cineDB.sql
 
+therfore, execute the following command to enhance the database classes
+
+      mvn datanucleus:enhance
+
 Run the following command to create database schema for this sample.
 
       mvn datanucleus:schema-create
@@ -22,3 +26,11 @@ Run the following command to launch the main example class
 Run the following command to remove the database schema
    
       mvn datanucleus:schema-delete
+
+To launch the server run the command
+
+      mvn jetty:run
+
+To launch the web client open the link:
+
+http://localhost:8080
