@@ -1,51 +1,55 @@
 package org.datanucleus;
 
-import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpExchange;
-
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
+import java.net.URI;
+
+import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+import org.glassfish.jersey.server.ResourceConfig;
 
 /**
- * The Main class represents the entry point of the application.
- * It starts a simple HTTP server and provides a basic REST endpoint.
+ * Main class to start the cinema management REST server.
  */
 public class Main {
+    
+    // Base URI the Grizzly HTTP server will listen on
+    public static final String BASE_URI = "http://localhost:8080/";
 
     /**
-     * The main method of the application.
-     * It starts the HTTP server.
+     * Starts Grizzly HTTP server exposing JAX-RS resources defined in this application.
      * 
-     * @param args The command line arguments.
+     * @return Grizzly HTTP server.
      */
-    public static void main(String[] args) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
-        server.createContext("/", new HelloHandler());
-        server.setExecutor(null); // Use the default executor
-        server.start();
-        System.out.println("Server is running on http://localhost:8080/");
+    public static HttpServer startServer() {
+        // Scan for JAX-RS resources in the specified package
+        final ResourceConfig rc = new ResourceConfig().packages("org.datanucleus");
+        
+        // Create and start a new instance of grizzly http server
+        return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);
     }
 
     /**
-     * A simple HTTP handler to handle HTTP requests.
+     * Main method.
+     * @param args Command line arguments (not used)
+     * @throws IOException If there's an error reading from console
      */
-    static class HelloHandler implements HttpHandler {
-
-        /**
-         * Handles incoming HTTP requests and sends a response.
-         * 
-         * @param exchange The HTTP exchange object.
-         * @throws IOException If an I/O error occurs.
-         */
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            String response = "Server is running. Welcome to CineGP2025!";
-            exchange.sendResponseHeaders(200, response.getBytes().length);
-            try (OutputStream os = exchange.getResponseBody()) {
-                os.write(response.getBytes());
-            }
-        }
+    public static void main(String[] args) throws IOException {
+        // Start the server
+        final HttpServer server = startServer();
+        
+        // Print server information
+        System.out.println(String.format("Cinema server started at %s\n" + 
+               "Available endpoints:\n" +
+               "- GET/POST %susuarios\n" +
+               "- GET/POST %speliculas\n" +
+               "- GET/POST %sentradas\n" +
+               "Press Enter to stop the server...", 
+               BASE_URI, BASE_URI, BASE_URI, BASE_URI));
+        
+        // Wait for user input to stop the server
+        System.in.read();
+        
+        // Shutdown server
+        server.shutdownNow();
     }
 }
