@@ -1,11 +1,15 @@
-/* DELETE 'cineDB' database*/
+-- Eliminar base de datos y usuario si existen
 DROP SCHEMA IF EXISTS cineDB;
-/* DELETE USER 'spq' AT LOCAL SERVER*/
 DROP USER IF EXISTS 'spq'@'localhost';
 
-/* CREATE 'cineDB' DATABASE */
-CREATE SCHEMA  cineDB;
-/* CREATE THE USER 'spq' AT LOCAL SERVER WITH PASSWORD 'spq' */
-CREATE USER IF NOT EXISTS 'spq'@'localhost' IDENTIFIED BY 'spq';
+-- Crear la base de datos
+CREATE SCHEMA cineDB;
 
-GRANT ALL ON cineDB.* TO 'spq'@'localhost';
+-- Crear el usuario 'spq' con la contraseña 'spq'
+CREATE USER 'spq'@'localhost' IDENTIFIED BY 'spq';
+
+-- Otorgar privilegios al usuario 'spq' sobre la base de datos 'cineDB'
+GRANT ALL PRIVILEGES ON cineDB.* TO 'spq'@'localhost';
+
+-- Asegurarse de que los cambios se apliquen
+FLUSH PRIVILEGES;

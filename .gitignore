@@ -3,7 +3,11 @@ target/
 .project
 .classpath
 .vscode
+.settings
+
 *.log
+
+bin/
 
 /.mvn
 .settings/org.eclipse.core.resources.prefs
