@@ -9,3 +9,7 @@ CREATE SCHEMA  cineDB;
 CREATE USER IF NOT EXISTS 'spq'@'localhost' IDENTIFIED BY 'spq';
 
 GRANT ALL ON cineDB.* TO 'spq'@'localhost';
+
+
+USE cineDB;
+SHOW TABLES;

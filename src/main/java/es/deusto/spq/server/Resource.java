@@ -1,4 +1,4 @@
-package org.datanucleus;
+package es.deusto.spq.server;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,9 +20,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.datanucleus.jdo.Pelicula;
-import org.datanucleus.jdo.TipoUsuario;
-import org.datanucleus.jdo.Usuario;
+import es.deusto.spq.server.jdo.Usuario;
+import es.deusto.spq.server.jdo.Pelicula;
+import es.deusto.spq.server.jdo.TipoUsuario;
 
 
 
@@ -67,9 +67,9 @@ public class Resource {
 			try {
 				tx.begin();
 				Query<Usuario> query = pm.newQuery(Usuario.class, 
-				"nombreUsuario == :nombreUsuario && contrasenya == :contrasenya");
+					"nombreUsuario == :nombreUsuario && contrasenya == :contrasenya");
 				query.setUnique(true);
-				Usuario user = (Usuario) query.execute(usuario.getNombre(), usuario.getContrasenya());
+				Usuario user = (Usuario) query.execute(usuario.getNombreUsuario(), usuario.getContrasenya());
 				if (user != null) {
 					logger.info("User {} logged in successfully!", user.getNombre());
 					long token = System.currentTimeMillis();
@@ -109,10 +109,10 @@ public class Resource {
 				tx.rollback();
 				return Response.status(Response.Status.UNAUTHORIZED).entity("User already exists").build();
 			} else {
-				logger.info("Creating user: {}", user);
-				user = new Usuario(usuario.getDni(), usuario.getNombre(), usuario.getApellidos(),usuario.getEmail(), 
+				user = new Usuario(usuario.getDni(), usuario.getNombre(), usuario.getApellidos(),usuario.getEmail(), usuario.getNombreUsuario(), 
 				usuario.getContrasenya(), usuario.getDireccion(), usuario.getTelefono(),
 						TipoUsuario.CLIENTE);
+				logger.info("Creating user: {}", usuario.getNombreUsuario());
 				pm.makePersistent(user);
 				logger.info("User created: {}", user);
 				tx.commit();
@@ -122,7 +122,6 @@ public class Resource {
 			if (tx.isActive()) {
 				tx.rollback();
 			}
-
 		}
 	}
 

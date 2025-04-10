@@ -1,4 +1,4 @@
-package org.datanucleus.jdo;
+package es.deusto.spq.server.jdo;
 import javax.jdo.annotations.*;
 
 import java.text.SimpleDateFormat;

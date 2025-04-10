@@ -1,4 +1,4 @@
-package org.datanucleus.jdo;
+package es.deusto.spq.server.jdo;
 import java.util.List;
 
 import javax.jdo.annotations.IdGeneratorStrategy;

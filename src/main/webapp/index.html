@@ -46,6 +46,10 @@
                 <input type="email" id="email" required>
             </div>
             <div class="form-group">
+                <label for="username">User name:</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
                 <label for="password">Password:</label>
                 <input type="password" id="password" required>
             </div>
@@ -93,7 +97,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        nombre: username,
+                        nombreUsuario: username,
                         contrasenya: password
                     })
                 });
@@ -139,6 +143,7 @@
                 nombre: document.getElementById('nombre').value,
                 apellidos: document.getElementById('apellidos').value,
                 email: document.getElementById('email').value,
+                nombreUsuario: document.getElementById('username').value,
                 contrasenya: document.getElementById('password').value,
                 direccion: document.getElementById('direccion').value,
                 telefono: document.getElementById('telefono').value

@@ -5,8 +5,8 @@
     <servlet-name>CineGP2025</servlet-name>
     <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
     <init-param>
-        <param-name>jersey.config.server.provider.packages</param-name>
-        <param-value>org.datanucleus</param-value>
+      <param-name>jersey.config.server.provider.packages</param-name>
+      <param-value>es.deusto.spq.server</param-value>
     </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>

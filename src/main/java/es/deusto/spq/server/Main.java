@@ -1,4 +1,4 @@
-package org.datanucleus;
+package es.deusto.spq.server;
 
 import java.io.IOException;
 import java.net.URI;
@@ -22,7 +22,7 @@ public class Main {
      */
     public static HttpServer startServer() {
         // Scan for JAX-RS resources in the specified package
-        final ResourceConfig rc = new ResourceConfig().packages("org.datanucleus");
+        final ResourceConfig rc = new ResourceConfig().packages("es.deusto.spq.server");
         
         // Create and start a new instance of grizzly http server
         return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);

@@ -1,29 +1,45 @@
-package org.datanucleus.jdo;
+package es.deusto.spq.server.jdo;
 import javax.jdo.annotations.*;
 
 @PersistenceCapable
 public class Usuario {
     @Persistent private String nombre;
-    @Persistent private String apellidos; 
+    @Persistent private String apellidos;
     @Persistent private String email;
+    @Persistent private String nombreUsuario;
     @Persistent private String contrasenya;
     @Persistent private String direccion;
     @Persistent private String telefono;
     @Persistent private TipoUsuario tipoUsuario;   
     @PrimaryKey private String dni;
 
-    public Usuario() {
-    }
-
-    public Usuario(String dni, String nombre, String apellidos, String email, String contrasenya, String direccion, String telefono, TipoUsuario tipoUsuario) {
+    public Usuario(String dni, String nombre, String apellidos, String email, String nombreUsuario, String contrasenya, String direccion, String telefono, TipoUsuario tipoUsuario) {
         this.dni = dni;
         this.nombre = nombre;
         this.apellidos = apellidos;
         this.email = email;
+        this.nombreUsuario = nombreUsuario;
         this.contrasenya = contrasenya;
         this.direccion = direccion;
         this.telefono = telefono;
         this.tipoUsuario = tipoUsuario;
+    }
+
+    public Usuario() {
+        this.nombre = "";
+        this.apellidos = "";
+        this.email = "";
+        this.nombreUsuario = "";
+        this.contrasenya = "";
+        this.direccion = "";
+        this.telefono = "";
+        this.tipoUsuario = TipoUsuario.CLIENTE;
+        this.dni = "";
+    }
+
+    public Usuario(String nombreUsuario, String contrasenya) {
+        this.nombreUsuario = nombreUsuario;
+        this.contrasenya = contrasenya;
     }
 
     // Getters y Setters
@@ -57,6 +73,14 @@ public class Usuario {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getNombreUsuario() {
+        return nombreUsuario;
+    }
+
+    public void setNombreUsuario(String nombreUsuario) {
+        this.nombreUsuario = nombreUsuario;
     }
     
     public String getContrasenya() {
@@ -98,13 +122,13 @@ public class Usuario {
                 ", nombre='" + nombre + '\'' +
                 ", apellidos='" + apellidos + '\'' +
                 ", email='" + email + '\'' +
+                ", nombreUsuario='" + nombreUsuario + '\'' +
                 ", telefono='" + telefono + '\'' +
                 ", tipoUsuario=" + tipoUsuario +
                 '}';
     }
 
-
     public String toStringCorto() {
-        return "Usuario " + nombre + " con DNI:" + dni;
+        return "Usuario " + nombre + " con DNI:" + dni + " y nombreUsuario: " + nombreUsuario;
     }
 }
