@@ -42,6 +42,10 @@ public class Usuario {
         this.contrasenya = contrasenya;
     }
 
+    public Usuario(String nombreUsuario){
+        this.nombreUsuario = nombreUsuario;
+    }
+
     // Getters y Setters
     public String getDni() {
         return dni;

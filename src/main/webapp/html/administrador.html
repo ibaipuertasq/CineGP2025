@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineGP - Administración de Usuarios</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../css/administrador.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+</head>
+
+<body>
+    <header>
+        <div class="navbar">
+            <div class="dropdown">
+                <button class="dropbtn">Menú
+                    <i class="fa fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content">
+                    <a href="usuario/editarUsuario.html">Modificar cuenta</a> 
+                    <a href="../index.html">Cerrar sesión</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div id="titulo">
+        <h1>Bienvenido al Panel de CineGP</h1>
+        <p>Desde aquí puedes gestionar los usuarios registrados en CineGP. Controla sus datos, roles y actividad. Como administrador, puedes mantener la plataforma organizada, eliminando usuarios inactivos o ajustando sus privilegios según sus necesidades.</p>
+    </div>
+
+    <div id="usuarios">
+        <h2>Usuarios Registrados</h2>
+        <p>Gestiona de forma efectiva a los cinéfilos y administradores que utilizan nuestra plataforma. Puedes modificar su información, eliminar cuentas o cambiar su rol (por ejemplo, ascender un cliente a administrador).</p>
+
+        <table id="tabla">
+            <thead>
+                <tr>
+                    <th colspan="8">Listado de Usuarios</th>
+                </tr>
+                <tr>
+                    <th>DNI</th>
+                    <th>Nombre</th>
+                    <th>Apellidos</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Rol</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Datos de usuarios se cargarán dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="../js/administrador.js"></script>
+</body>
+
+</html>

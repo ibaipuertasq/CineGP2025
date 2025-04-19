@@ -14,9 +14,11 @@ import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Query;
 import javax.jdo.Transaction;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -148,6 +150,90 @@ public class Resource {
 		}
 	}
 
+
+@PUT
+@Path("/updateUser")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
+public Response updateUser(Usuario usuario) {
+    try {
+        tx.begin();
+
+        Usuario user = null;
+        try {
+            // Busca al usuario por su DNI
+            user = pm.getObjectById(Usuario.class, usuario.getDni());
+        } catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+            logger.info("Usuario no encontrado: {}", jonfe.getMessage());
+            tx.rollback();
+            return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
+        }
+
+        // Si el usuario existe, actualiza sus datos
+        if (user != null) {
+            user.setNombre(usuario.getNombre());
+            user.setApellidos(usuario.getApellidos());
+            user.setEmail(usuario.getEmail());
+            user.setNombreUsuario(usuario.getNombreUsuario());
+            user.setContrasenya(usuario.getContrasenya());
+            user.setDireccion(usuario.getDireccion());
+            user.setTelefono(usuario.getTelefono());
+            user.setTipoUsuario(usuario.getTipoUsuario());
+
+            logger.info("Usuario actualizado: {}", user);
+            tx.commit();
+            return Response.ok(user).build(); // Devuelve el usuario actualizado
+        } else {
+            logger.info("Usuario no encontrado");
+            tx.rollback();
+            return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
+        }
+    } catch (Exception e) {
+        logger.error("Error al actualizar el usuario: {}", e.getMessage());
+        if (tx.isActive()) {
+            tx.rollback();
+        }
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al actualizar el usuario").build();
+    }
+}
+
+
+@DELETE
+@Path("/deleteUser/{nombreUsuario}")
+@Produces(MediaType.APPLICATION_JSON)
+public Response deleteUser(@PathParam("nombreUsuario") String nombreUsuario) {
+    try {
+        tx.begin();
+
+        Usuario user = null;
+        try {
+            // Usa una consulta para buscar al usuario por nombreUsuario
+            Query<Usuario> query = pm.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
+            query.setUnique(true);
+            user = (Usuario) query.execute(nombreUsuario);
+        } catch (Exception e) {
+            logger.info("Error al buscar el usuario: {}", e.getMessage());
+        }
+
+        // Si el usuario existe, lo elimina
+        if (user != null) {
+            logger.info("Eliminando usuario: {}", user);
+            pm.deletePersistent(user);
+            tx.commit();
+            return Response.ok("Usuario eliminado con éxito").build();
+        } else {
+            logger.info("Usuario no encontrado");
+            tx.rollback();
+            return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
+        }
+    } catch (Exception e) {
+        logger.error("Error al eliminar el usuario: {}", e.getMessage());
+        if (tx.isActive()) {
+            tx.rollback();
+        }
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al eliminar el usuario").build();
+    }
+}
 	/**
      * Logs out a user by removing their token.
      *
@@ -167,6 +253,95 @@ public class Resource {
         }
     }
     
+
+
+		/**
+	 * Deletes a user account based on the provided DNI (Documento Nacional de
+	 * Identidad).
+	 * 
+	 * @param dni The DNI of the user to be deleted.
+	 * @return A Response object indicating the status of the operation.
+	 *         - If the user is found and successfully deleted, returns a Response
+	 *         with status 200 (OK).
+	 *         - If the user is not found, returns a Response with status 404 (Not
+	 *         Found) and an error message.
+	 */
+	@DELETE
+	@Path("/eliminarCuenta/{dni}")
+	public Response eliminarCuenta(@PathParam("dni") String dni) {
+		try {
+			tx.begin();
+
+			Usuario usuario = null;
+
+			try {
+				usuario = pm.getObjectById(Usuario.class, dni);
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Exception launched: {}", jonfe.getMessage());
+			}
+
+			if (usuario != null) {
+				logger.info("Deleting user: {}", usuario);
+				pm.deletePersistent(usuario);
+				tx.commit();
+				return Response.ok().build();
+			} else {
+				logger.info("User not found");
+				tx.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("User not found").build();
+			}
+		} finally {
+			if (tx.isActive()) {
+				tx.rollback();
+			}
+			pm.close();
+		}
+	}
+
+
+		/**
+	 * Retrieves the user with the specified ID.
+	 * 
+	 * @param id the ID of the user
+	 * @return a Response object containing the user if found, or an error message
+	 *         if not found
+	 */
+	@GET
+	@Path("/getUsuarioId/{nombreUsuario}")
+	public Response getUsuarioId(@PathParam("nombreUsuario") String nombreUsuario) {
+		try {
+			tx.begin();
+			Usuario user = null;
+
+			try {
+				// Usa una consulta para buscar al usuario por nombreUsuario
+				Query<Usuario> query = pm.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
+				query.setUnique(true);
+				user = (Usuario) query.execute(nombreUsuario); // Obtiene el usuario completo
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Exception launched: {}", jonfe.getMessage());
+			}
+
+			if (user != null) {
+				logger.info("User found: {}", user);
+				tx.commit();
+				return Response.ok(user).build(); // Devuelve el usuario encontrado
+			} else {
+				logger.info("No user found");
+				tx.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("User not found").build();
+			}
+		} finally {
+			if (tx.isActive()) {
+				tx.rollback();
+			}
+			pm.close();
+		}
+	}
+
+
+	
+
 	/**
 	 * Creates a new peli in the system.
 	 * 

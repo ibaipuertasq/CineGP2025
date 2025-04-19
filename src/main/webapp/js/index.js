@@ -1,9 +1,9 @@
-function redirectionCliente(id){
-    location.href = "../html/cliente.html" + "?id=" + id;
+function redirectionCliente(nombreUsuario){
+    location.href = "../html/cliente.html" + "?nombreUsuario=" + nombreUsuario;
 }
 
-function redirectionAdministrador(id){
-    location.href = "../html/administrador.html" + "?id=" + id;
+function redirectionAdministrador(nombreUsuario){
+    location.href = "../html/administrador.html" + "?nombreUsuario=" + nombreUsuario;
 }
 
 
@@ -52,9 +52,9 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             
             // Redireccionar según rol
             if (currentUser.tipoUsuario === 'CLIENTE') {
-                redirectionCliente(currentUser.dni);
+                redirectionCliente(currentUser.nombreUsuario);
             } else if (currentUser.tipoUsuario === 'ADMINISTRADOR') {
-                redirectionAdministrador(currentUser.dni);
+                redirectionAdministrador(currentUser.nombreUsuario);
             }
             setTimeout(() => {
                 updateUI();

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Usuario</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="../../css/header.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+</head>
+
+<body>
+    <header>
+        <div class="navbar">
+            <div class="dropdown">
+                <button class="dropbtn">Menú
+                    <i class="fa fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content">
+                    <a href="#">Opción 1</a>
+                    <a id="principalCliente" href="#" >Página principal</a>
+                    <a href="../../index.html" >LogOut</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    <h1>Editar Usuario</h1>
+    <div class="formbold-main-wrapper"> 
+        <div class="formbold-form-wrapper">
+            <form method="POST" onload="cargarDatos()">
+                <div class="formbold-input-flex">
+                    <div>
+                        <input type="text" name="nombre" id="nombre" placeholder="Introduzca el nombre" class="formbold-form-input" />
+                        <label for="nombre" class="formbold-form-label"> Nombre </label>
+                    </div>
+                    <div>
+                        <input type="text" name="apellidos" id="apellidos" placeholder="Introduzca los apellidos" class="formbold-form-input" />
+                        <label for="apellidos" class="formbold-form-label"> Apellidos </label>
+                    </div>
+                </div>
+                <div class="formbold-input-flex">
+                    <div>
+                        <input type="text" name="nombreUsuario" id="nombreUsuario" placeholder="Introduzca el nombre de usuario" class="formbold-form-input" />
+                        <label for="nombreUsuario" class="formbold-form-label"> Nombre de usuario</label>
+                    </div>
+                    <div>
+                        <input type="password" name="pass" id="pass" placeholder="Introduzca la contraseña" class="formbold-form-input" />
+                        <label for="pass" class="formbold-form-label"> Contraseña </label>
+                    </div>
+                </div>
+
+                <div class="formbold-input-flex">
+                    <div>
+                        <input type="email" name="email" id="email"  placeholder="Introduzca el email" class="formbold-form-input" />
+                        <label for="email" class="formbold-form-label"> Email </label>
+                    </div>
+
+                    <div>
+                        <input type="text" name="direccion" id="direccion" placeholder="Introduzca la dirección" class="formbold-form-input" />
+                        <label for="direccion" class="formbold-form-label"> Dirección </label>
+                    </div>
+                </div>
+
+                <div class="formbold-input-flex">
+                    <div>
+                        <input type="tel" name="telefono" id="telefono" placeholder="Introduzca el número de teléfono" class="formbold-form-input" />
+                        <label for="telefono" class="formbold-form-label"> Teléfono </label>
+                    </div>                    
+                </div>
+                <div class="formbold-input-flex">
+                    <div>
+                        <input type="number" name="dni" id="dni" placeholder="Introduzca el DNI" class="formbold-form-input" disabled/>
+                        <label for="dni" class="formbold-form-label"> DNI </label>
+                    </div>
+                    
+                </div>
+
+                <button id="botonEditUsuario" type="button" class="formbold-btn">
+                    Confirmar Edición
+                </button>
+                <button id="botonDeleteUsuario" type="button" class="formbold-btn">
+                    Borrar Cuenta
+                </button>
+            </form>
+        </div>
+    </div>
+    <script src="../../js/usuario/editarUsuario.js"></script>
+    
+</body>
+
+</html>
