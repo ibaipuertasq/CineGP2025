@@ -6,6 +6,9 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
@@ -70,12 +73,32 @@ public class Resource {
 					"nombreUsuario == :nombreUsuario && contrasenya == :contrasenya");
 				query.setUnique(true);
 				Usuario user = (Usuario) query.execute(usuario.getNombreUsuario(), usuario.getContrasenya());
+				
 				if (user != null) {
 					logger.info("User {} logged in successfully!", user.getNombre());
+					logger.info("Usuario recuperado: {}", user);
+	
+					// Asegúrate de que todas las propiedades están configuradas
+					Usuario responseUser = new Usuario();
+					responseUser.setNombre(user.getNombre());
+					responseUser.setApellidos(user.getApellidos());
+					responseUser.setEmail(user.getEmail());
+					responseUser.setNombreUsuario(user.getNombreUsuario());
+					responseUser.setDireccion(user.getDireccion());
+					responseUser.setTelefono(user.getTelefono());
+					responseUser.setTipoUsuario(user.getTipoUsuario());
+					responseUser.setDni(user.getDni());
+	
 					long token = System.currentTimeMillis();
-					tokens.put(user, token); // Store by user object instead of username
+					tokens.put(user, token);
 					tx.commit();
-					return Response.ok(user).build();
+	
+					try {
+						logger.info("JSON devuelto: {}", new ObjectMapper().writeValueAsString(responseUser));
+					} catch (JsonProcessingException e) {
+						e.printStackTrace();
+					}
+					return Response.ok(responseUser).build();
 				} else {
 					logger.info("Invalid username or password");
 					return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid credentials").build();
