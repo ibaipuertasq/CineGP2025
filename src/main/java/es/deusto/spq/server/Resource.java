@@ -151,89 +151,105 @@ public class Resource {
 	}
 
 
-@PUT
-@Path("/updateUser")
-@Consumes(MediaType.APPLICATION_JSON)
-@Produces(MediaType.APPLICATION_JSON)
-public Response updateUser(Usuario usuario) {
-    try {
-        tx.begin();
+	@PUT
+	@Path("/updateUser")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response updateUser(Usuario usuario) {
+		try {
+			tx.begin();
+	
+			Usuario user = null;
+			try {
+				// Busca al usuario por su DNI
+				user = pm.getObjectById(Usuario.class, usuario.getDni());
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Usuario no encontrado: {}", jonfe.getMessage());
+				tx.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
+			}
+	
+			// Si el usuario existe, actualiza solo los campos no vacíos
+			if (user != null) {
+				// Solo actualiza los campos si no están vacíos en el objeto usuario recibido
+				if (usuario.getNombre() != null && !usuario.getNombre().isEmpty()) {
+					user.setNombre(usuario.getNombre());
+				}
+				if (usuario.getApellidos() != null && !usuario.getApellidos().isEmpty()) {
+					user.setApellidos(usuario.getApellidos());
+				}
+				if (usuario.getEmail() != null && !usuario.getEmail().isEmpty()) {
+					user.setEmail(usuario.getEmail());
+				}
+				if (usuario.getNombreUsuario() != null && !usuario.getNombreUsuario().isEmpty()) {
+					user.setNombreUsuario(usuario.getNombreUsuario());
+				}
+				if (usuario.getContrasenya() != null && !usuario.getContrasenya().isEmpty()) {
+					user.setContrasenya(usuario.getContrasenya());
+				}
+				if (usuario.getDireccion() != null && !usuario.getDireccion().isEmpty()) {
+					user.setDireccion(usuario.getDireccion());
+				}
+				if (usuario.getTelefono() != null && !usuario.getTelefono().isEmpty()) {
+					user.setTelefono(usuario.getTelefono());
+				}
+				if (usuario.getTipoUsuario() != null) {
+					user.setTipoUsuario(usuario.getTipoUsuario());
+				}
+	
+				logger.info("Usuario actualizado: {}", user);
+				tx.commit();
+				return Response.ok(user).build(); // Devuelve el usuario actualizado
+			} else {
+				logger.info("Usuario no encontrado");
+				tx.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
+			}
+		} catch (Exception e) {
+			logger.error("Error al actualizar el usuario: {}", e.getMessage());
+			if (tx.isActive()) {
+				tx.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al actualizar el usuario").build();
+		}
+	}
 
-        Usuario user = null;
-        try {
-            // Busca al usuario por su DNI
-            user = pm.getObjectById(Usuario.class, usuario.getDni());
-        } catch (javax.jdo.JDOObjectNotFoundException jonfe) {
-            logger.info("Usuario no encontrado: {}", jonfe.getMessage());
-            tx.rollback();
-            return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
-        }
+	@DELETE
+	@Path("/deleteUser/{nombreUsuario}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response deleteUser(@PathParam("nombreUsuario") String nombreUsuario) {
+		try {
+			tx.begin();
 
-        // Si el usuario existe, actualiza sus datos
-        if (user != null) {
-            user.setNombre(usuario.getNombre());
-            user.setApellidos(usuario.getApellidos());
-            user.setEmail(usuario.getEmail());
-            user.setNombreUsuario(usuario.getNombreUsuario());
-            user.setContrasenya(usuario.getContrasenya());
-            user.setDireccion(usuario.getDireccion());
-            user.setTelefono(usuario.getTelefono());
-            user.setTipoUsuario(usuario.getTipoUsuario());
+			Usuario user = null;
+			try {
+				// Usa una consulta para buscar al usuario por nombreUsuario
+				Query<Usuario> query = pm.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
+				query.setUnique(true);
+				user = (Usuario) query.execute(nombreUsuario);
+			} catch (Exception e) {
+				logger.info("Error al buscar el usuario: {}", e.getMessage());
+			}
 
-            logger.info("Usuario actualizado: {}", user);
-            tx.commit();
-            return Response.ok(user).build(); // Devuelve el usuario actualizado
-        } else {
-            logger.info("Usuario no encontrado");
-            tx.rollback();
-            return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
-        }
-    } catch (Exception e) {
-        logger.error("Error al actualizar el usuario: {}", e.getMessage());
-        if (tx.isActive()) {
-            tx.rollback();
-        }
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al actualizar el usuario").build();
-    }
-}
-
-
-@DELETE
-@Path("/deleteUser/{nombreUsuario}")
-@Produces(MediaType.APPLICATION_JSON)
-public Response deleteUser(@PathParam("nombreUsuario") String nombreUsuario) {
-    try {
-        tx.begin();
-
-        Usuario user = null;
-        try {
-            // Usa una consulta para buscar al usuario por nombreUsuario
-            Query<Usuario> query = pm.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
-            query.setUnique(true);
-            user = (Usuario) query.execute(nombreUsuario);
-        } catch (Exception e) {
-            logger.info("Error al buscar el usuario: {}", e.getMessage());
-        }
-
-        // Si el usuario existe, lo elimina
-        if (user != null) {
-            logger.info("Eliminando usuario: {}", user);
-            pm.deletePersistent(user);
-            tx.commit();
-            return Response.ok("Usuario eliminado con éxito").build();
-        } else {
-            logger.info("Usuario no encontrado");
-            tx.rollback();
-            return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
-        }
-    } catch (Exception e) {
-        logger.error("Error al eliminar el usuario: {}", e.getMessage());
-        if (tx.isActive()) {
-            tx.rollback();
-        }
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al eliminar el usuario").build();
-    }
-}
+			// Si el usuario existe, lo elimina
+			if (user != null) {
+				logger.info("Eliminando usuario: {}", user);
+				pm.deletePersistent(user);
+				tx.commit();
+				return Response.ok("Usuario eliminado con éxito").build();
+			} else {
+				logger.info("Usuario no encontrado");
+				tx.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
+			}
+		} catch (Exception e) {
+			logger.error("Error al eliminar el usuario: {}", e.getMessage());
+			if (tx.isActive()) {
+				tx.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al eliminar el usuario").build();
+		}
+	}
 	/**
      * Logs out a user by removing their token.
      *

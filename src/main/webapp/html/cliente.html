@@ -9,15 +9,22 @@
     <link rel="stylesheet" href="../css/cliente.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-    
 </head>
 
 <body>
     <header>
         <div class="navbar">
+            <div class="logo">
+                <h1>CineGP</h1>
+            </div>
+            <nav class="nav-links">
+                <a href="#eventos">Cartelera</a>
+                <a href="#entradas">Mis Entradas</a>
+            </nav>
             <div class="dropdown">
-                <button class="dropbtn">Menú
-                    <i class="fa fa-caret-down"></i>
+                <button class="dropbtn">
+                    <span class="material-icons">account_circle</span>
+                    <span class="user-name" id="userName">Usuario</span>
                 </button>
                 <div class="dropdown-content">
                     <button type="button" id="editarUsuario">Modificar Cuenta</button>
@@ -27,57 +34,81 @@
         </div>
     </header>
     
-    <div id="titulo">
-        <h1>¡Bienvenido a CineGP!</h1>
-        <p>Descubre la magia del cine desde tu pantalla. Aquí podrás explorar la cartelera más completa, ver detalles de cada película,
-        horarios disponibles y gestionar tus entradas cómodamente. Disfruta de los últimos estrenos, clásicos del cine y experiencias únicas en pantalla grande.</p>
+    <div class="hero-section">
+        <div class="hero-container">
+            <div id="titulo">
+                <h1>¡Bienvenido a CineGP!</h1>
+                <p>Descubre la magia del cine desde tu pantalla. Aquí podrás explorar la cartelera más completa, ver detalles de cada película,
+                horarios disponibles y gestionar tus entradas cómodamente. Disfruta de los últimos estrenos, clásicos del cine y experiencias únicas en pantalla grande.</p>
+            </div>
+        </div>
     </div>
 
-    <div id="eventos">
-        <h2>Cartelera</h2>
-        <p>Explora todas las películas disponibles actualmente en nuestras salas. Puedes ver los detalles, horarios y reservar tu butaca para no perderte nada.</p>
-        <table id="tabla">
-            <thead>
-                <tr>
-                    <th colspan="6">Películas</th>
-                </tr>
-                <tr>
-                    <th>#</th>
-                    <th>Título</th>
-                    <th>Fecha Estreno</th>
-                    <th>Director</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Las filas se cargarán dinámicamente desde JS -->
-            </tbody>
-        </table>
-        <button id="botonEventos" class="boton" type="button">Ver más películas</button>
-    </div>
+    <main class="main-content">
+        <section id="eventos" class="section">
+            <div class="section-header">
+                <h2>Cartelera</h2>
+                <p>Explora todas las películas disponibles actualmente en nuestras salas. Puedes ver los detalles, horarios y reservar tu butaca para no perderte nada.</p>
+            </div>
+            <div class="table-container">
+                <table id="tabla" class="content-table">
+                    <thead>
+                        <tr>
+                            <th colspan="5">Películas</th>
+                        </tr>
+                        <tr>
+                            <th>#</th>
+                            <th>Título</th>
+                            <th>Fecha Estreno</th>
+                            <th>Director</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Las filas se cargarán dinámicamente desde JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="button-container">
+                <button id="botonEventos" class="boton" type="button">Ver más películas</button>
+            </div>
+        </section>
 
-    <div id="entradas">
-        <h2>Mis Entradas</h2>
-        <p>Aquí puedes ver las entradas que has comprado. Gestiona tus reservas y prepárate para disfrutar de la función.</p>
-        <table id="tablaEntrada">
-            <thead>
-                <tr>
-                    <th colspan="6">Entradas</th>
-                </tr>
-                <tr>
-                    <th>#</th>
-                    <th>Película</th>
-                    <th>Horario</th>
-                    <th>Sala</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Entradas del usuario -->
-            </tbody>
-        </table>
-        <button id="botonEntradas" class="boton" type="button">Ver más entradas</button>
-    </div>
+        <section id="entradas" class="section">
+            <div class="section-header">
+                <h2>Mis Entradas</h2>
+                <p>Aquí puedes ver las entradas que has comprado. Gestiona tus reservas y prepárate para disfrutar de la función.</p>
+            </div>
+            <div class="table-container">
+                <table id="tablaEntrada" class="content-table">
+                    <thead>
+                        <tr>
+                            <th colspan="5">Entradas</th>
+                        </tr>
+                        <tr>
+                            <th>#</th>
+                            <th>Película</th>
+                            <th>Horario</th>
+                            <th>Sala</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Entradas del usuario -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="button-container">
+                <button id="botonEntradas" class="boton" type="button">Ver más entradas</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <p>© 2025 CineGP - Tu Cine de Confianza</p>
+        </div>
+    </footer>
 
     <script src="../js/cliente.js"></script>
 </body>

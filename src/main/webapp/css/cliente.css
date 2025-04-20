@@ -1,0 +1,322 @@
+/* ===== ESTILOS GENERALES ===== */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    color: #333;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* ===== HEADER Y NAVEGACIÓN ===== */
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #333;
+    padding: 0 5%;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-sizing: border-box;
+}
+
+.logo h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #fff;
+    line-height: 1;
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.dropdown {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.dropbtn {
+    display: flex;
+    align-items: center;
+    background: transparent;
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 8px 12px;
+    gap: 5px;
+}
+
+.dropbtn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #f9f9f9;
+    min-width: 180px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 4px;
+}
+
+.dropdown-content a, 
+.dropdown-content button {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+    border: none;
+    background: none;
+    width: 100%;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.dropdown-content a:hover, 
+.dropdown-content button:hover {
+    background-color: #f1f1f1;
+    color: #4CAF50;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* ===== HERO SECTION ===== */
+.hero-section {
+    background-color: #2196F3;
+    color: white;
+    padding: 60px 0;
+    text-align: center;
+    width: 100%;
+}
+
+.hero-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+#titulo h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+#titulo p {
+    font-size: 1.1rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* ===== CONTENIDO PRINCIPAL ===== */
+/* ===== CONTENIDO PRINCIPAL ===== */
+.main-content {
+    width: 100%;
+    max-width: 1400px;
+    margin: 40px auto;
+    padding: 0; /* ← Cambio clave */
+}
+
+.section {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin: 0 auto 40px; /* ← Margen automático */
+    padding: 30px 20px; /* ← Padding simétrico */
+    width: calc(100% - 40px); /* ← Ajuste preciso */
+}
+
+/* ===== TABLAS ===== */
+.table-container {
+    overflow-x: auto;
+    width: 100%;
+    margin: 0; /* ← Elimina márgenes heredados */
+}
+
+.content-table {
+    width: 100%; /* ← Ocupa todo el ancho disponible */
+    margin: 20px 0 !important; /* ← Solo márgenes verticales */
+}
+
+.section-header {
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.section-header h2 {
+    color: #333;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #4CAF50;
+    padding-bottom: 10px;
+    display: inline-block;
+}
+
+.section-header p {
+    color: #666;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.content-table thead tr {
+    background-color: #4CAF50;
+    color: white;
+    text-align: left;
+}
+
+.content-table th, 
+.content-table td {
+    padding: 12px 15px;
+    text-align: left;
+}
+
+.content-table thead tr:first-child th {
+    text-align: center;
+}
+
+.content-table tbody tr {
+    border-bottom: 1px solid #ddd;
+}
+
+.content-table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+}
+
+.content-table tbody tr:last-of-type {
+    border-bottom: 2px solid #4CAF50;
+}
+
+/* ===== BOTONES ===== */
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.boton {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.boton:hover {
+    background-color: #45a049;
+}
+
+/* ===== FOOTER ===== */
+footer {
+    background-color: #333;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+    width: 100%;
+    margin-top: auto;
+}
+
+.footer-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+/* ===== DISEÑO RESPONSIVE ===== */
+@media screen and (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .nav-links {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* ... (todo el CSS anterior se mantiene igual) ... */
+
+    .hero-section {
+        background-color: #2196F3;
+        color: white;
+        padding: 60px 0;
+        width: 100%;
+    }
+
+    .hero-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 20px;
+        box-sizing: border-box;
+    }
+
+    #titulo {
+        width: 100%;
+        text-align: center;
+    }
+
+    #titulo h1 {
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+        color: white;
+        text-align: center;
+        width: 100%;
+        padding: 0;
+    }
+
+    #titulo p {
+        font-size: 1.1rem;
+        max-width: 1000px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    /* ... (el resto del CSS permanece igual) ... */
+    
+    .section {
+        padding: 20px 15px;
+    }
+    
+    .content-table th, 
+    .content-table td {
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+}
