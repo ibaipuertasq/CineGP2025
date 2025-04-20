@@ -111,6 +111,85 @@
     background-color: #c0392b;
 }
 
+/* --- Barra de navegación superior --- */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #333;
+    padding: 15px 5%;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.logo h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #fff;
+}
+
+/* Menú desplegable mejorado */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropbtn {
+    display: flex;
+    align-items: center;
+    background-color: transparent;
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 8px 12px;
+    font-size: 16px;
+    border-radius: 4px;
+    gap: 5px;
+}
+
+.dropbtn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #f9f9f9;
+    min-width: 180px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 4px;
+}
+
+.dropdown-content a {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+    transition: all 0.3s;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+    color: #4CAF50;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Añade esto para los iconos del menú */
+.material-icons {
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
 /* Responsive design */
 @media (max-width: 600px) {
     .edit-card {
