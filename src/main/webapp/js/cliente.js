@@ -7,11 +7,26 @@ function redirectionEditar(nombreUsuario) {
     location.href = "../html/usuario/editarUsuario.html" + "?nombreUsuario=" + nombreUsuario;
 }
 
+function redirectionComprar() {
+    location.href = "../html/entrada/comprarEntradas.html" + "?nombreUsuario=" + userId;;
+}
+
 // Evento para manejar el clic en el botón
 document.getElementById('editarUsuario').addEventListener('click', (e) => {
     e.preventDefault(); // Previene el comportamiento predeterminado
     if (userId) {
         redirectionEditar(userId); // Pasa el nombre de usuario obtenido de la URL
+    } else {
+        console.error("No se encontró el parámetro 'nombreUsuario' en la URL.");
+    }
+});
+
+
+// Evento para manejar el clic en el botón
+document.getElementById('botonEntradas').addEventListener('click', (e) => {
+    e.preventDefault(); // Previene el comportamiento predeterminado
+    if (userId) {
+        redirectionComprar(); // Pasa el nombre de usuario obtenido de la URL
     } else {
         console.error("No se encontró el parámetro 'nombreUsuario' en la URL.");
     }

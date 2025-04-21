@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>COMPRA ENTRADA</title>
+    <link rel="stylesheet" href="../../css/entrada/compraEntradas.css">
+    <link rel="stylesheet" href="../../css/header.css">
+    <link rel="shortcut icon" href="../../images/logo.png" type="image/x-icon">
+</head>
+
+<body>
+    <header>
+        <div class="navbar">
+            <img src="../../images/logo.png" alt="LogoDeustoEventos">
+            <div class="dropdown">
+                <button class="dropbtn">Menú
+                    <i class="fa fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content">
+                    <a href="#">Opción 1</a>
+                    <a id="ventanaPrincipal" href="#">Ventana Principal</a>
+                    <a href="../../inicio.html">LogOut</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div id="titulo">
+        <h1 id = "si">Página de compra</h1>
+        <p>
+            Esta página está meticulosamente diseñada para facilitar el proceso de
+            compra de entradas, brindando una experiencia fluida y eficiente a los
+            usuarios.
+        </p>
+    </div>
+
+    <div class="formbold-form-wrapper">
+        <form method="POST">
+            <div class="formbold-input-flex"></div>
+                <div>
+                    <label for="opciones" class="formulario-label">Selecciona una opción:</label>
+                    <select id="opciones" class="formulario-select">
+                        <option class="opciones" value="normal">NORMAL</option>
+                        <option class="opciones" value="vip">VIP</option>
+                        <option class="opciones" value="discapacitado">DISCAPACITADO</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="cantidad" class="formbold-form-label"> Cantidad </label>
+                    <input type="number" name="cantidad" id="cantidad" placeholder="Introduzca la cantidad"
+                        class="formbold-form-input" />
+                </div>
+
+                <div>
+                    <label for="peliculas" class="formbold-form-label">Escoja una película</label>
+                    <select id="peliculas">
+                        <option class="option" value="0">Seleccione una película</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="horario" class="formbold-form-label">Horarios</label>
+                    <select id="fecha_input"></select>
+                </div>
+
+                <button id = "btnNewEntrada" type="button" class="formbold-btn">
+                    Comprar Entrada
+                </button>
+            </div>
+        </form>
+    </div>
+    <script src="../../js/entradas/comprarEntradas.js"></script>
+    <script src="../../js/peliculas/cargarPeliculas.js"></script>
+</body>
+
+</html>
