@@ -24,7 +24,7 @@ let listarPeliculas = async () => {
                 <td>${pelicula.titulo}</td>
                 <td>${pelicula.genero}</td>
                 <td>${pelicula.duracion}</td>
-                <td>${pelicula.sala}</td>
+                <td>${pelicula.sala.numero}</td>
                 <td>${pelicula.horario}</td>
                 <td>
                     <i class="material-icons button edit">edit</i>

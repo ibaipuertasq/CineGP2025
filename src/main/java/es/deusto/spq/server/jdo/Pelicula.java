@@ -17,7 +17,8 @@ public class Pelicula {
     @Persistent private String director;
     @Persistent private String sinopsis;
     @Persistent private String horario; // Horarios de proyección
-    @Persistent private Sala sala; // Sala donde se proyecta
+    @Persistent(defaultFetchGroup = "true")
+    private Sala sala;
     
 
     // Constructor vacío
