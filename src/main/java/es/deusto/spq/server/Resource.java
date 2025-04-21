@@ -32,7 +32,6 @@ import es.deusto.spq.server.jdo.TipoUsuario;
 
 
 
-
 @Path("/resource")
 @Produces(MediaType.APPLICATION_JSON)
 public class Resource {
@@ -117,38 +116,38 @@ public class Resource {
 	 * Represents the HTTP response returned by the server.
 	 */
 	@POST
-	@Path("/register")
-	public Response registerUser(Usuario usuario) {
-		try {
-			tx.begin();
-
-			Usuario user = null;
-			try {
-				user = pm.getObjectById(Usuario.class, usuario.getDni());
-			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
-				logger.info("Exception launched: {}", jonfe.getMessage());
-			}
-
-			if (user != null) {
-				logger.info("User already exists!");
-				tx.rollback();
-				return Response.status(Response.Status.UNAUTHORIZED).entity("User already exists").build();
-			} else {
-				user = new Usuario(usuario.getDni(), usuario.getNombre(), usuario.getApellidos(),usuario.getEmail(), usuario.getNombreUsuario(), 
-				usuario.getContrasenya(), usuario.getDireccion(), usuario.getTelefono(),
-						TipoUsuario.CLIENTE);
-				logger.info("Creating user: {}", usuario.getNombreUsuario());
-				pm.makePersistent(user);
-				logger.info("User created: {}", user);
-				tx.commit();
-				return Response.ok().build();
-			}
-		} finally {
-			if (tx.isActive()) {
-				tx.rollback();
-			}
-		}
-	}
+ 	@Path("/register")
+ 	public Response registerUser(Usuario usuario) {
+ 		try {
+ 			tx.begin();
+ 
+ 			Usuario user = null;
+ 			try {
+ 				user = pm.getObjectById(Usuario.class, usuario.getDni());
+ 			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+ 				logger.info("Exception launched: {}", jonfe.getMessage());
+ 			}
+ 
+ 			if (user != null) {
+ 				logger.info("User already exists!");
+ 				tx.rollback();
+ 				return Response.status(Response.Status.UNAUTHORIZED).entity("User already exists").build();
+ 			} else {
+ 				user = new Usuario(usuario.getDni(), usuario.getNombre(), usuario.getApellidos(),usuario.getEmail(), usuario.getNombreUsuario(), 
+ 				usuario.getContrasenya(), usuario.getDireccion(), usuario.getTelefono(),
+ 						TipoUsuario.CLIENTE);
+ 				logger.info("Creating user: {}", usuario.getNombreUsuario());
+ 				pm.makePersistent(user);
+ 				logger.info("User created: {}", user);
+ 				tx.commit();
+ 				return Response.ok().build();
+ 			}
+ 		} finally {
+ 			if (tx.isActive()) {
+ 				tx.rollback();
+ 			}
+ 		}
+ 	}
 
 
 	@PUT
@@ -495,14 +494,14 @@ public class Resource {
 	}
 	
 	/**
-	 * Retrieves a list of events.
+	 * Retrieves a list of pelis.
 	 * 
-	 * @return a Response object containing the list of events if found, or an
-	 *         unauthorized status with an error message if no events are found.
+	 * @return a Response object containing the list of pelis if found, or an
+	 *         unauthorized status with an error message if no pelis are found.
 	 */
 	@GET
-	@Path("/getPelicula")
-	public Response getPelicula() {
+	@Path("/getPeliculas")
+	public Response getPeliculas() {
 		try {
 			tx.begin();
 			Query<Pelicula> query = pm.newQuery(Pelicula.class);
@@ -511,13 +510,13 @@ public class Resource {
 			List<Pelicula> peliculas = (List<Pelicula>) query.execute();
 
 			if (peliculas != null) {
-				logger.info("{} events found", peliculas.size());
+				logger.info("{} pelis found", peliculas.size());
 				tx.commit();
 				return Response.ok(peliculas).build();
 			} else {
-				logger.info("No events found");
+				logger.info("No pelis found");
 				tx.rollback();
-				return Response.status(Response.Status.UNAUTHORIZED).entity("No events found").build();
+				return Response.status(Response.Status.UNAUTHORIZED).entity("No pelis found").build();
 			}
 		} finally {
 			if (tx.isActive()) {
@@ -529,3 +528,148 @@ public class Resource {
 	}
 
 }
+
+/*
+
+@GET
+@Path("/getHorarios/{peliculaId}")
+@Produces(MediaType.APPLICATION_JSON)
+public Response getHorarios(@PathParam("peliculaId") Long peliculaId) {
+    try (PersistenceManager pm = JDOHelper.getPersistenceManagerFactory("datanucleus.properties").getPersistenceManager()) {
+        // Busca la película por su ID
+        Pelicula pelicula = pm.getObjectById(Pelicula.class, peliculaId);
+
+        if (pelicula != null) {
+            // Devuelve los horarios asociados a la película
+            List<Horario> horarios = pelicula.getHorarios();
+            return Response.ok(horarios).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).entity("Película no encontrada").build();
+        }
+    } catch (Exception e) {
+        logger.error("Error al obtener los horarios: {}", e.getMessage());
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener los horarios").build();
+    }
+}
+
+
+	/**
+	 * This method is used to handle the request for buying a ticket.
+	 * It creates a new ticket based on the provided peli ID, tipoAsiento, and quantity.
+	 * If the ticket already exists, it returns an unauthorized response.
+	 * Otherwise, it creates the ticket, persists it, and returns a success
+	 * response.
+	 *
+	 * @param peliId  The ID of the peli for which the ticket is being purchased.
+	 * @param tipoAsiento   The tipoAsiento of the peli where the ticket will be located.
+	 * @param cantidad The quantity of tickets being purchased.
+	 * @return A Response object indicating the success or failure of the ticket
+	 *         purchase.
+	 */ /* 
+	@SuppressWarnings("null")
+	@GET
+	@Path("/comprarEntrada/{idPelicula}/{tipoAsiento}/{cantidad}")
+	public Response comprarEntrada(@PathParam("idPelicula") String peliId, @PathParam("tipoAsiento") String tipoAsiento,
+			@PathParam("cantidad") String cantidad) {
+		try {
+			tx.begin();
+
+			Entrada ticket = null;
+			Pelicula peli = null;
+
+			try {
+				peli = pm.getObjectById(Pelicula.class, peliId);
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Exception launched: {}", jonfe.getMessage());
+			}
+
+			Entrada entrada = null;
+
+			System.out.println(tipoAsiento);
+
+			if (TipoAsiento.VIP.toString().equals(tipoAsiento.toUpperCase())) {
+				//entrada = new Entrada(usuario, peli, 100, TipoAsiento.VIP);	// usuario, cine, precio, asiento, tipoAsiento
+			} else if (TipoAsiento.NORMAL.toString().equals(tipoAsiento.toUpperCase())) {
+				//entrada = new Entrada(usuario, peli, 20, TipoAsiento.NORMAL);
+			} else if (TipoAsiento.DISCAPACITADOS.toString().equals(tipoAsiento.toUpperCase())) {
+				//entrada = new Entrada(usuario, peli, 30, TipoAsiento.DISCAPACITADOS);
+			} 
+
+			try {
+				ticket = pm.getObjectById(Entrada.class, entrada.getId());
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Exception launched: {}", jonfe.getMessage());
+			}
+
+			if (ticket != null) {
+				logger.info("Ticket already exists!");
+				tx.rollback();
+				return Response.status(Response.Status.UNAUTHORIZED).entity("Ticket already exists").build();
+			} else {
+				if (tipoAsientoesPelicula.VIP.toString().equals(tipoAsiento.toUpperCase())) {
+					ticket = new Entrada(null, peli, 100, tipoAsientoesPelicula.VIP);
+					Mensaje mensaje = new Mensaje();
+					if (usuario.getTelefono().contains("+34")) {
+						mensaje.setTelefono(usuario.getTelefono());
+						mensaje.setMensaje("¡Hola! Has comprado una entrada VIP para el Pelicula " + peli.getNombre()
+								+ " en la fecha " + peli.getFecha() + " en " + peli.getLugar()
+								+ ". ¡Disfruta del Pelicula!");
+						sendMSG(mensaje);
+					} else {
+						mensaje.setTelefono("+34" + usuario.getTelefono());
+						mensaje.setMensaje("¡Hola! Has comprado una entrada VIP para el Pelicula " + peli.getNombre()
+								+ " en la fecha " + peli.getFecha() + " en " + peli.getLugar()
+								+ ". ¡Disfruta del Pelicula!");
+						sendMSG(mensaje);
+					}
+				} else if (tipoAsientoesPelicula.GRADA_ALTA.toString().equals(tipoAsiento.toUpperCase())) {
+					ticket = new Entrada(null, peli, 20, tipoAsientoesPelicula.GRADA_ALTA);
+					Mensaje mensaje = new Mensaje();
+					if (usuario.getTelefono().contains("+34")) {
+						mensaje.setTelefono(usuario.getTelefono());
+						mensaje.setMensaje("¡Hola! Has comprado una entrada en el tipoAsiento GRADA ALTA para el Pelicula "
+								+ peli.getNombre() + " en la fecha " + peli.getFecha() + " en " + peli.getLugar()
+								+ ". ¡Disfruta del Pelicula!");
+						sendMSG(mensaje);
+					} else {
+						mensaje.setTelefono("+34" + usuario.getTelefono());
+						mensaje.setMensaje("¡Hola! Has comprado una entrada en el tipoAsiento GRADA ALTA para el Pelicula "
+								+ peli.getNombre() + " en la fecha " + peli.getFecha() + " en " + peli.getLugar()
+								+ ". ¡Disfruta del Pelicula!");
+						sendMSG(mensaje);
+					}
+				} else if (tipoAsientoesPelicula.GRADA_MEDIA.toString().equals(tipoAsiento.toUpperCase())) {
+					ticket = new Entrada(null, peli, 30, tipoAsientoesPelicula.GRADA_MEDIA);
+					Mensaje mensaje = new Mensaje();
+					if (usuario.getTelefono().contains("+34")) {
+						mensaje.setTelefono(usuario.getTelefono());
+						mensaje.setMensaje("¡Hola! Has comprado una entrada en el tipoAsiento GRADA MEDIA para el Pelicula "
+								+ peli.getNombre() + " en la fecha " + peli.getFecha() + " en " + peli.getLugar()
+								+ ". ¡Disfruta del Pelicula!");
+						sendMSG(mensaje);
+					} else {
+						mensaje.setTelefono("+34" + usuario.getTelefono());
+						mensaje.setMensaje("¡Hola! Has comprado una entrada en el tipoAsiento GRADA MEDIA para el Pelicula "
+								+ peli.getNombre() + " en la fecha " + peli.getFecha() + " en " + peli.getLugar()
+								+ ". ¡Disfruta del Pelicula!");
+						sendMSG(mensaje);
+					}
+				} 
+
+				logger.info("Creating ticket: {}", ticket);
+
+				pm.makePersistent(ticket);
+				logger.info("Ticket created: {}", ticket);
+				tx.commit();
+				return Response.ok().build();
+			}
+		} finally {
+			if (tx.isActive()) {
+				tx.rollback();
+			}
+
+		}
+
+	}
+
+	 */

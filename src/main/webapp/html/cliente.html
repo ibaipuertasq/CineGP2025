@@ -50,7 +50,7 @@
                 <h2>Cartelera</h2>
                 <p>Explora todas las películas disponibles actualmente en nuestras salas. Puedes ver los detalles, horarios y reservar tu butaca para no perderte nada.</p>
             </div>
-            <div class="table-container">
+            <div class="peliculas">
                 <table id="tabla" class="content-table">
                     <thead>
                         <tr>
@@ -64,8 +64,8 @@
                             <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <!-- Las filas se cargarán dinámicamente desde JS -->
+                    <tbody id="tablaPeliculasBody">
+                        <!-- Las filas de películas se cargarán dinámicamente desde cargarPeliculas.js -->
                     </tbody>
                 </table>
             </div>
@@ -99,7 +99,7 @@
                 </table>
             </div>
             <div class="button-container">
-                <button id="botonEntradas" class="boton" type="button">Ver más entradas</button>
+                <button id="botonEntradas" class="boton" type="button">Comprar Entradas</button>
             </div>
         </section>
     </main>
@@ -111,6 +111,7 @@
     </footer>
 
     <script src="../js/cliente.js"></script>
+    <script src="../js/peliculas/cargarPeliculas.js"></script>
 </body>
 
 </html>
