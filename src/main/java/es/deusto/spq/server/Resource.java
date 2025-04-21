@@ -1,5 +1,7 @@
 package es.deusto.spq.server;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +28,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import es.deusto.spq.server.jdo.Usuario;
+import es.deusto.spq.server.jdo.Asiento;
 import es.deusto.spq.server.jdo.Pelicula;
+import es.deusto.spq.server.jdo.Sala;
+import es.deusto.spq.server.jdo.TipoAsiento;
 import es.deusto.spq.server.jdo.TipoUsuario;
 
 
@@ -388,7 +393,7 @@ public class Resource {
 			} else {
 				logger.info("Creating peli: {}", peli);
 				peli = new Pelicula(pelicula.getTitulo(), pelicula.getGenero(), pelicula.getDuracion(), pelicula.getFechaEstreno(),
-						pelicula.getDirector(), pelicula.getSinopsis(), pelicula.getHorarios(), pelicula.getSala());
+						pelicula.getDirector(), pelicula.getSinopsis(), pelicula.getHorario(), pelicula.getSala());
 				pm.makePersistent(peli);
 				logger.info("peli created: {}", peli);
 				tx.commit();
@@ -469,7 +474,7 @@ public class Resource {
 					peli.setFechaEstreno(pelicula.getFechaEstreno());
 					peli.setDirector(pelicula.getDirector());
 					peli.setSinopsis(pelicula.getSinopsis());
-					peli.setHorarios(pelicula.getHorarios());
+					peli.setHorario(pelicula.getHorario());
 					peli.setSala(pelicula.getSala());
 
 					logger.info("peli updated: {}", peli);
@@ -492,6 +497,150 @@ public class Resource {
 			pm.close();
 		}
 	}
+
+
+		/**
+	 * Verifica si hay películas en la base de datos y, si no las hay, inicializa
+	 * con un conjunto predeterminado de películas.
+	 * 
+	 * @return true si se inicializaron nuevas películas, false si ya existían
+	 */
+	private boolean inicializarPeliculas() {
+		boolean inicializado = false;
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+
+			// Verificar si hay películas en la base de datos
+			Query<Pelicula> query = pmTemp.newQuery(Pelicula.class);
+			query.setRange(0, 1); // Solo necesitamos saber si hay al menos una
+			
+			@SuppressWarnings("unchecked")
+			List<Pelicula> peliculas = (List<Pelicula>) query.execute();
+			
+			if (peliculas == null || peliculas.isEmpty()) {
+				logger.info("No se encontraron películas. Inicializando la base de datos con películas predeterminadas.");
+				
+				// Crear salas con asientos inicializados
+				Sala[] salas = crearSalasConAsientos(pmTemp);
+				
+				// Parsear fechas
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+				
+				// Crear y persistir películas
+				Pelicula[] peliculasIniciales = {
+					new Pelicula("El Padrino", "Drama", 175, dateFormat.parse("1972-03-24"), 
+						"Francis Ford Coppola", 
+						"La historia de la familia Corleone, una de las más poderosas familias de la mafia italoamericana en Nueva York después de la Segunda Guerra Mundial.", 
+						"18:00, 21:00", salas[0]),
+					
+					new Pelicula("Titanic", "Romance", 195, dateFormat.parse("1997-12-19"), 
+						"James Cameron", 
+						"Un joven artista y una joven aristócrata se enamoran durante el desafortunado viaje inaugural del Titanic.", 
+						"17:30, 20:30", salas[1]),
+					
+					new Pelicula("El Señor de los Anillos: La Comunidad del Anillo", "Fantasía", 178, dateFormat.parse("2001-12-19"), 
+						"Peter Jackson", 
+						"Un hobbit de la Comarca y ocho compañeros emprenden un viaje para destruir el poderoso Anillo Único y salvar la Tierra Media del Señor Oscuro Sauron.", 
+						"16:00, 19:30", salas[2]),
+					
+					new Pelicula("Pulp Fiction", "Thriller", 154, dateFormat.parse("1994-10-14"), 
+						"Quentin Tarantino", 
+						"Las vidas de dos mafiosos, un boxeador, la esposa de un gánster y un par de bandidos se entrelazan en una historia de violencia y redención.", 
+						"19:00, 22:00", salas[3]),
+					
+					new Pelicula("El Caballero Oscuro", "Acción", 152, dateFormat.parse("2008-07-18"), 
+						"Christopher Nolan", 
+						"Batman se enfrenta al Joker, un criminal psicópata que busca sumir Gotham City en el caos.", 
+						"17:00, 20:00", salas[4]),
+					
+					new Pelicula("Forrest Gump", "Drama", 142, dateFormat.parse("1994-07-06"), 
+						"Robert Zemeckis", 
+						"La vida de un hombre con coeficiente intelectual bajo que logra grandes cosas y es testigo y protagonista de acontecimientos importantes en la historia de EE.UU.", 
+						"16:30, 19:30", salas[0]),
+					
+					new Pelicula("Star Wars: Episodio IV - Una nueva esperanza", "Ciencia ficción", 121, dateFormat.parse("1977-05-25"), 
+						"George Lucas", 
+						"Un granjero se une a un caballero Jedi, un piloto y otros personajes para salvar a la galaxia del imperio.", 
+						"18:30, 21:30", salas[1]),
+					
+					new Pelicula("Jurassic Park", "Aventura", 127, dateFormat.parse("1993-06-11"), 
+						"Steven Spielberg", 
+						"Un multimillonario crea un parque temático con dinosaurios clonados que escapan de control.", 
+						"17:00, 20:00", salas[2])
+				};
+				
+				for (Pelicula pelicula : peliculasIniciales) {
+					pmTemp.makePersistent(pelicula);
+				}
+				
+				inicializado = true;
+				logger.info("Base de datos inicializada con {} películas.", peliculasIniciales.length);
+			} else {
+				logger.info("Ya existen películas en la base de datos.");
+			}
+			
+			txTemp.commit();
+		} catch (Exception e) {
+			logger.error("Error al inicializar las películas: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+		
+		return inicializado;
+	}
+
+	/**
+	 * Crea 5 salas con asientos inicializados y las persiste en la base de datos.
+	 * @param pm PersistenceManager para persistir las salas y asientos
+	 * @return Array con las salas creadas
+	 */
+	private Sala[] crearSalasConAsientos(PersistenceManager pm) {
+		Sala[] salas = new Sala[5];
+		
+		// Crear las 5 salas
+		for (int i = 0; i < 5; i++) {
+			int capacidad = 80 + (i * 10); // Capacidades: 80, 90, 100, 110, 120
+			List<Asiento> asientos = new ArrayList<>();
+			
+			// Crear asientos para cada sala
+			for (int j = 1; j <= capacidad; j++) {
+				TipoAsiento tipo;
+				
+				// Asignar tipo de asiento según posición
+				if (j <= capacidad * 0.1) { // 10% VIP
+					tipo = TipoAsiento.VIP;
+				} else if (j <= capacidad * 0.15) { // 5% para discapacitados
+					tipo = TipoAsiento.DISCAPACITADOS;
+				} else { // El resto normales
+					tipo = TipoAsiento.NORMAL;
+				}
+				
+				// Crear el asiento con un ID único, número, tipo y estado inicial (no ocupado)
+				Asiento asiento = new Asiento((i * 1000) + j, j, tipo, false);
+				pm.makePersistent(asiento); // Persistir el asiento
+				asientos.add(asiento);
+			}
+			
+			// Crear la sala con sus asientos
+			salas[i] = new Sala(i + 1, i + 1, capacidad, asientos);
+			pm.makePersistent(salas[i]); // Persistir la sala
+			
+			logger.info("Sala {} creada con {} asientos", i + 1, capacidad);
+		}
+		
+		return salas;
+	}
 	
 	/**
 	 * Retrieves a list of pelis.
@@ -499,35 +648,57 @@ public class Resource {
 	 * @return a Response object containing the list of pelis if found, or an
 	 *         unauthorized status with an error message if no pelis are found.
 	 */
+/**
+ * Retrieves a list of películas. If no películas are found in the database,
+ * it initializes the database with a default set of películas.
+ * 
+ * @return a Response object containing the list of películas if found, or an
+ *         unauthorized status with an error message if no películas are found.
+ */
 	@GET
 	@Path("/getPeliculas")
 	public Response getPeliculas() {
+		// Primero, intentar inicializar películas si es necesario
+		inicializarPeliculas();
+		
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+		
 		try {
-			tx.begin();
-			Query<Pelicula> query = pm.newQuery(Pelicula.class);
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+			
+			Query<Pelicula> query = pmTemp.newQuery(Pelicula.class);
 
 			@SuppressWarnings("unchecked")
 			List<Pelicula> peliculas = (List<Pelicula>) query.execute();
 
-			if (peliculas != null) {
-				logger.info("{} pelis found", peliculas.size());
-				tx.commit();
+			if (peliculas != null && !peliculas.isEmpty()) {
+				logger.info("{} películas encontradas", peliculas.size());
+				txTemp.commit();
 				return Response.ok(peliculas).build();
 			} else {
-				logger.info("No pelis found");
-				tx.rollback();
-				return Response.status(Response.Status.UNAUTHORIZED).entity("No pelis found").build();
+				logger.info("No se encontraron películas");
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("No se encontraron películas").build();
 			}
+		} catch (Exception e) {
+			logger.error("Error al obtener películas: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener películas").build();
 		} finally {
-			if (tx.isActive()) {
-				tx.rollback();
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
 			}
-			pm.close();
 		}
-
 	}
 
 }
+
 
 /*
 

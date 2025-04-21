@@ -3,7 +3,6 @@ import javax.jdo.annotations.*;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 
 @PersistenceCapable
 public class Pelicula {
@@ -17,7 +16,7 @@ public class Pelicula {
     @Persistent private Date fechaEstreno;
     @Persistent private String director;
     @Persistent private String sinopsis;
-    @Persistent private List<String> horarios; // Horarios de proyección
+    @Persistent private String horario; // Horarios de proyección
     @Persistent private Sala sala; // Sala donde se proyecta
     
 
@@ -25,14 +24,14 @@ public class Pelicula {
     public Pelicula() {}
 
     // Constructor con parámetros
-    public Pelicula(String titulo, String genero, int duracion, Date fechaEstreno, String director, String sinopsis, List<String> horarios, Sala sala) {
+    public Pelicula(String titulo, String genero, int duracion, Date fechaEstreno, String director, String sinopsis, String horario, Sala sala) {
         this.titulo = titulo;
         this.genero = genero;
         this.duracion = duracion;
         this.fechaEstreno = fechaEstreno;
         this.director = director;
         this.sinopsis = sinopsis;
-        this.horarios = horarios;
+        this.horario = horario;
         this.sala = sala;
     }
 
@@ -93,12 +92,12 @@ public class Pelicula {
         this.sinopsis = sinopsis;
     }
 
-    public List<String> getHorarios() {
-        return horarios;
+    public String getHorario() {
+        return horario;
     }
 
-    public void setHorarios(List<String> horarios) {
-        this.horarios = horarios;
+    public void setHorario(String horario) {
+        this.horario = horario;
     }
 
     public Sala getSala() {
@@ -119,7 +118,7 @@ public class Pelicula {
                 ", fechaEstreno=" + fechaEstreno +
                 ", director='" + director + '\'' +
                 ", sinopsis='" + sinopsis + '\'' +
-                ", horarios=" + horarios +
+                ", horario=" + horario +
                 ", sala=" + sala +
                 '}';
     }
