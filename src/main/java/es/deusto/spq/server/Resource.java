@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,11 +31,12 @@ import javax.ws.rs.core.Response;
 
 import es.deusto.spq.server.jdo.Usuario;
 import es.deusto.spq.server.jdo.Asiento;
+import es.deusto.spq.server.jdo.Entrada;
 import es.deusto.spq.server.jdo.Pelicula;
 import es.deusto.spq.server.jdo.Sala;
 import es.deusto.spq.server.jdo.TipoAsiento;
 import es.deusto.spq.server.jdo.TipoUsuario;
-
+import es.deusto.spq.server.jdo.HistorialCompras;
 
 
 
@@ -696,7 +699,66 @@ public class Resource {
 			}
 		}
 	}
+/**
+     * Retrieves the purchase history (tickets) for a user based on their username using the HistorialCompras table.
+     * 
+     * @param nombreUsuario The username of the user whose purchase history is requested.
+     * @return A Response object containing the list of tickets if found, or an error message if no tickets or user are found.
+     */
+    @GET
+    @Path("/verHistorialCompras/{nombreUsuario}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response verHistorialCompras(@PathParam("nombreUsuario") String nombreUsuario) {
+        PersistenceManager pmTemp = null;
+        Transaction txTemp = null;
 
+        try {
+            PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+            pmTemp = pmf.getPersistenceManager();
+            txTemp = pmTemp.currentTransaction();
+            txTemp.begin();
+
+            // Buscar al usuario por nombreUsuario
+            Query<Usuario> userQuery = pmTemp.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
+            userQuery.setUnique(true);
+            Usuario user = (Usuario) userQuery.execute(nombreUsuario);
+
+            if (user == null) {
+                logger.info("Usuario no encontrado: {}", nombreUsuario);
+                txTemp.rollback();
+                return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
+            }
+
+            // Buscar todas las entradas en el historial asociadas al usuario
+            Query<HistorialCompras> historyQuery = pmTemp.newQuery(HistorialCompras.class, "usuario == :usuario");
+            @SuppressWarnings("unchecked")
+            List<HistorialCompras> historial = (List<HistorialCompras>) historyQuery.execute(user);
+
+            if (historial != null && !historial.isEmpty()) {
+                // Extraer las entradas del historial
+                List<Entrada> entradas = historial.stream()
+                        .map(HistorialCompras::getEntrada)
+                        .collect(Collectors.toList());
+                logger.info("Se encontraron {} entradas para el usuario {}", entradas.size(), nombreUsuario);
+                txTemp.commit();
+                return Response.ok(entradas).build();
+            } else {
+                logger.info("No se encontraron entradas para el usuario {}", nombreUsuario);
+                txTemp.rollback();
+                return Response.status(Response.Status.NOT_FOUND).entity("No se encontraron entradas").build();
+            }
+        } catch (Exception e) {
+            logger.error("Error al obtener el historial de compras: {}", e.getMessage());
+            if (txTemp != null && txTemp.isActive()) {
+                txTemp.rollback();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener el historial de compras").build();
+        } finally {
+            if (pmTemp != null && !pmTemp.isClosed()) {
+                pmTemp.close();
+            }
+        }
+	}
 }
 
 
