@@ -375,33 +375,71 @@ public class Resource {
 	@POST
 	@Path("/crearPelicula")
 	public Response crearPelicula(Pelicula pelicula) {
-		System.out.println(pelicula);
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+		
 		try {
-			tx.begin();
-			Pelicula peli = null;
-
-			try {
-				peli = pm.getObjectById(Pelicula.class, pelicula.getId());
-			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
-				logger.info("Exception launched: {}", jonfe.getMessage());
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+			
+			logger.info("Intento de crear película: {}", pelicula);
+			
+			// Verificar si ya existe una película con el mismo título
+			Query<Pelicula> query = pmTemp.newQuery(Pelicula.class, "titulo == :titulo");
+			query.setUnique(true);
+			Pelicula peliculaExistente = (Pelicula) query.execute(pelicula.getTitulo());
+			
+			if (peliculaExistente != null) {
+				logger.info("Ya existe una película con ese título: {}", pelicula.getTitulo());
+				txTemp.rollback();
+				return Response.status(Response.Status.CONFLICT).entity("Ya existe una película con ese título").build();
 			}
-
-			if (peli != null) {
-				logger.info("film already exists!");
-				tx.rollback();
-				return Response.status(Response.Status.UNAUTHORIZED).entity("peli already exists").build();
+			
+			// Obtener la referencia a la sala completa
+			Sala sala = null;
+			if (pelicula.getSala() != null && pelicula.getSala().getId() > 0) {
+				try {
+					sala = pmTemp.getObjectById(Sala.class, pelicula.getSala().getId());
+				} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+					logger.error("No se encontró la sala con ID: {}", pelicula.getSala().getId());
+					txTemp.rollback();
+					return Response.status(Response.Status.NOT_FOUND).entity("No se encontró la sala seleccionada").build();
+				}
 			} else {
-				logger.info("Creating peli: {}", peli);
-				peli = new Pelicula(pelicula.getTitulo(), pelicula.getGenero(), pelicula.getDuracion(), pelicula.getFechaEstreno(),
-						pelicula.getDirector(), pelicula.getSinopsis(), pelicula.getHorario(), pelicula.getSala());
-				pm.makePersistent(peli);
-				logger.info("peli created: {}", peli);
-				tx.commit();
-				return Response.ok().build();
+				logger.error("No se proporcionó una sala válida");
+				txTemp.rollback();
+				return Response.status(Response.Status.BAD_REQUEST).entity("Se requiere una sala válida").build();
 			}
+			
+			// Crear la nueva película con la sala completa
+			Pelicula nuevaPelicula = new Pelicula(
+				pelicula.getTitulo(),
+				pelicula.getGenero(),
+				pelicula.getDuracion(),
+				pelicula.getFechaEstreno(),
+				pelicula.getDirector(),
+				pelicula.getSinopsis(),
+				pelicula.getHorario(),
+				sala
+			);
+			
+			pmTemp.makePersistent(nuevaPelicula);
+			logger.info("Película creada exitosamente: {}", nuevaPelicula);
+			
+			txTemp.commit();
+			return Response.ok().build();
+			
+		} catch (Exception e) {
+			logger.error("Error al crear la película: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al crear la película: " + e.getMessage()).build();
 		} finally {
-			if (tx.isActive()) {
-				tx.rollback();
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
 			}
 		}
 	}
