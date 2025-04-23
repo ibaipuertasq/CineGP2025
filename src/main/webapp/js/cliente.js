@@ -31,13 +31,3 @@ document.getElementById('botonEntradas').addEventListener('click', (e) => {
         console.error("No se encontró el parámetro 'nombreUsuario' en la URL.");
     }
 });
-
-// Añadir al archivo cliente.js existente
-document.getElementById('botonNuevaPelicula').addEventListener('click', (e) => {
-    e.preventDefault();
-    if (userId) {
-        window.location.href = "../html/pelicula/crearPelicula.html" + "?nombreUsuario=" + userId;
-    } else {
-        console.error("No se encontró el parámetro 'nombreUsuario' en la URL.");
-    }
-});

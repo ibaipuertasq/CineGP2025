@@ -4,60 +4,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineGP - Administración de Usuarios</title>
+    <title>CineGP - Tu Cine de Confianza</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="../css/administrador.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
 
 <body>
     <header>
         <div class="navbar">
+            <div class="logo">
+                <h1>CineGP</h1>
+            </div>
+            <nav class="nav-links">
+                <a href="#eventos">Cartelera</a>
+                <a href="#entradas">Mis Entradas</a>
+            </nav>
             <div class="dropdown">
-                <button class="dropbtn">Menú
-                    <i class="fa fa-caret-down"></i>
+                <button class="dropbtn">
+                    <span class="material-icons">account_circle</span>
+                    <span class="user-name" id="userName">Usuario</span>
                 </button>
                 <div class="dropdown-content">
-                    <a href="usuario/editarUsuario.html">Modificar cuenta</a> 
+                    <button type="button" id="editarUsuario">Cambiar contraseña</button>
                     <a href="../index.html">Cerrar sesión</a>
                 </div>
             </div>
         </div>
     </header>
-
-    <div id="titulo">
-        <h1>Bienvenido al Panel de CineGP</h1>
-        <p>Desde aquí puedes gestionar los usuarios registrados en CineGP. Controla sus datos, roles y actividad. Como administrador, puedes mantener la plataforma organizada, eliminando usuarios inactivos o ajustando sus privilegios según sus necesidades.</p>
+    
+    <div class="hero-section">
+        <div class="hero-container">
+            <div id="titulo">
+                <h1>¡Bienvenido a CineGP!</h1>
+                <p>Descubre la magia del cine desde tu pantalla. Aquí podrás explorar la cartelera más completa, ver detalles de cada película,
+                horarios disponibles y gestionar tus entradas cómodamente. Disfruta de los últimos estrenos, clásicos del cine y experiencias únicas en pantalla grande.</p>
+            </div>
+        </div>
     </div>
 
-    <div id="usuarios">
-        <h2>Usuarios Registrados</h2>
-        <p>Gestiona de forma efectiva a los cinéfilos y administradores que utilizan nuestra plataforma. Puedes modificar su información, eliminar cuentas o cambiar su rol (por ejemplo, ascender un cliente a administrador).</p>
+    <main class="main-content">
+        <section id="eventos" class="section">
+            <div class="section-header">
+                <h2>Cartelera</h2>
+                <p>Explora todas las películas disponibles actualmente en nuestras salas. Puedes ver los detalles, horarios y reservar tu butaca para no perderte nada.</p>
+            </div>
+            <div class="peliculas">
+                <table id="tabla" class="content-table">
+                    <thead>
+                        <tr>
+                            <th colspan="5">Películas</th>
+                        </tr>
+                        <tr>
+                            <th>Título</th>
+                            <th>Género</th>
+                            <th>Duración</th>
+                            <th>Sala</th>
+                            <th>Horario</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaPeliculasBody">
+                        <!-- Las filas de películas se cargarán dinámicamente desde cargarPeliculas.js -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="button-container">
+                <button id="botonNuevaPelicula" class="boton" type="button">Añadir nueva películas</button>
+            </div>
+        </section>
 
-        <table id="tabla">
-            <thead>
-                <tr>
-                    <th colspan="8">Listado de Usuarios</th>
-                </tr>
-                <tr>
-                    <th>DNI</th>
-                    <th>Nombre</th>
-                    <th>Apellidos</th>
-                    <th>Email</th>
-                    <th>Teléfono</th>
-                    <th>Rol</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Datos de usuarios se cargarán dinámicamente -->
-            </tbody>
-        </table>
-    </div>
+        <section id="entradas" class="section">
+            <div class="section-header">
+                <h2>Mis Entradas</h2>
+                <p>Aquí puedes ver las entradas que has comprado. Gestiona tus reservas y prepárate para disfrutar de la función.</p>
+            </div>
+            <div class="table-container">
+                <table id="tablaEntrada" class="content-table">
+                    <thead>
+                        <tr>
+                            <th colspan="5">Entradas</th>
+                        </tr>
+                        <tr>
+                            <th>#</th>
+                            <th>Película</th>
+                            <th>Horario</th>
+                            <th>Sala</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Entradas del usuario -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="button-container">
+                <button id="botonEntradas" class="boton" type="button">Comprar Entradas</button>
+            </div>
+        </section>
+    </main>
 
-    <script src="../js/administrador.js"></script>
+    <footer>
+        <div class="footer-container">
+            <p>© 2025 CineGP - Tu Cine de Confianza</p>
+        </div>
+    </footer>
+
+    <script src="../js/cliente.js"></script>
+    <script src="../js/pelicula/cargarPeliculas.js"></script>
 </body>
 
 </html>

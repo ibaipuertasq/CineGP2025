@@ -26,10 +26,6 @@ let listarPeliculas = async () => {
                 <td>${pelicula.duracion}</td>
                 <td>${pelicula.sala.numero}</td>
                 <td>${pelicula.horario}</td>
-                <td>
-                    <i class="material-icons button edit">edit</i>
-                    <i onClick="eliminarPelicula(${pelicula.id})"class="material-icons button delete">delete</i>
-                </td>
             <tr>`
     
             contenidoTabla += contenidoFila;
