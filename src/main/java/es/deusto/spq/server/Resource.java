@@ -360,7 +360,45 @@ public class Resource {
 	}
 
 
-	
+	@GET
+	@Path("/getSalas")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getSalas() {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+		
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+			
+			Query<Sala> query = pmTemp.newQuery(Sala.class);
+
+			@SuppressWarnings("unchecked")
+			List<Sala> salas = (List<Sala>) query.execute();
+
+			if (salas != null && !salas.isEmpty()) {
+				logger.info("{} salas encontradas", salas.size());
+				txTemp.commit();
+				return Response.ok(salas).build();
+			} else {
+				logger.info("No se encontraron salas");
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("No se encontraron salas").build();
+			}
+		} catch (Exception e) {
+			logger.error("Error al obtener salas: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener salas").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
 
 	/**
 	 * Creates a new peli in the system.

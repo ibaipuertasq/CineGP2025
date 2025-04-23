@@ -43,6 +43,46 @@ document.addEventListener('DOMContentLoaded', async function() {
 // Función para cargar las salas disponibles
 async function cargarSalas() {
     try {
+        const response = await fetch('http://localhost:8080/rest/resource/getSalas', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            // Si el endpoint específico no existe, usar el método actual (obtener salas de películas)
+            return cargarSalasDePeliculas();
+        }
+
+        const salas = await response.json();
+        
+        const selectSala = document.getElementById('sala');
+        selectSala.innerHTML = '<option value="">Selecciona una sala</option>';
+        
+        // Añadir las salas al select
+        salas.forEach(sala => {
+            const option = document.createElement('option');
+            option.value = sala.id;
+            option.textContent = `Sala ${sala.numero} (Capacidad: ${sala.capacidad})`;
+            selectSala.appendChild(option);
+        });
+
+        // Si no hay salas cargadas, mostrar un mensaje
+        if (salas.length === 0) {
+            mostrarAlerta('error', 'No se encontraron salas disponibles. Por favor, contacta con el administrador.');
+        }
+    } catch (error) {
+        console.error('Error al cargar las salas:', error);
+        // Si el endpoint no existe, usar el método actual
+        return cargarSalasDePeliculas();
+    }
+}
+
+// Función auxiliar para cargar salas de películas (método actual)
+async function cargarSalasDePeliculas() {
+    try {
         const response = await fetch('http://localhost:8080/rest/resource/getPeliculas', {
             method: 'GET',
             headers: {
@@ -76,6 +116,11 @@ async function cargarSalas() {
             option.textContent = `Sala ${sala.numero} (Capacidad: ${sala.capacidad})`;
             selectSala.appendChild(option);
         });
+
+        // Si no hay salas cargadas, mostrar un mensaje
+        if (salasMap.size === 0) {
+            mostrarAlerta('error', 'No se encontraron salas disponibles. Por favor, contacta con el administrador.');
+        }
     } catch (error) {
         console.error('Error al cargar las salas:', error);
         mostrarAlerta('error', 'Error al cargar las salas. Por favor, recarga la página.');
@@ -101,6 +146,9 @@ async function crearPelicula() {
             return;
         }
 
+        // Convertir la fecha al formato adecuado (ISO string pero con formato de fecha)
+        const fechaFormateada = new Date(fechaEstreno + 'T00:00:00');
+        
         // Crear el objeto de sala (simplificado, solo con el ID)
         const sala = { id: parseInt(salaId) };
 
@@ -109,12 +157,14 @@ async function crearPelicula() {
             titulo: titulo,
             genero: genero,
             duracion: duracion,
-            fechaEstreno: new Date(fechaEstreno).toISOString(),
+            fechaEstreno: fechaFormateada,
             director: director,
             sinopsis: sinopsis,
             horario: horario,
             sala: sala
         };
+
+        console.log('Enviando película:', JSON.stringify(pelicula));
 
         // Enviar la solicitud al servidor
         const response = await fetch('http://localhost:8080/rest/resource/crearPelicula', {
@@ -135,7 +185,8 @@ async function crearPelicula() {
                 window.location.href = `../cliente.html?nombreUsuario=${userId}`;
             }, 2000);
         } else {
-            throw new Error('Error al crear la película');
+            const errorText = await response.text();
+            throw new Error(`Error al crear la película: ${response.status} - ${errorText}`);
         }
     } catch (error) {
         console.error('Error:', error);
