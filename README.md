@@ -37,6 +37,14 @@ To launch the JUnits run the commnad
           or
       mvn clean test
 
+Pruebas de Integración:
+
+      mvn verify -Pintegration-tests
+
+Pruebas de Rendimiento:
+
+      mvn verify -Pperformance-tests
+
 To launch the web client open the link:
 
 http://localhost:8080
