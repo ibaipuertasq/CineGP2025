@@ -31,6 +31,12 @@ To launch the server run the command
 
       mvn jetty:run
 
+To launch the JUnits run the commnad
+
+      mvn test
+          or
+      mvn clean test
+
 To launch the web client open the link:
 
 http://localhost:8080
