@@ -14,7 +14,8 @@ public class Cine {
     
     @Persistent private String nombre;
     @Persistent private String direccion;
-    @Persistent private List<Sala> salas;
+    @Persistent(defaultFetchGroup = "true")
+    private List<Sala> salas;
 
     // Constructor por defecto
     public Cine() {

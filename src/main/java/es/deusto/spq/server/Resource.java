@@ -2,7 +2,7 @@ package es.deusto.spq.server;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -980,63 +980,62 @@ public class Resource {
 	}
 	
 	/**
-	 * Obtiene las entradas de un usuario específico
-	 * @param nombreUsuario Nombre de usuario
-	 * @return Response con las entradas o error si no hay
-	 */
-	@GET
-	@Path("/getEntradas/{nombreUsuario}")
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getEntradas(@PathParam("nombreUsuario") String nombreUsuario) {
-		PersistenceManager pmTemp = null;
-		Transaction txTemp = null;
-		
-		try {
-			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
-			pmTemp = pmf.getPersistenceManager();
-			txTemp = pmTemp.currentTransaction();
-			txTemp.begin();
-			
-			// Buscar usuario
-			Query<Usuario> queryUsuario = pmTemp.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
-			queryUsuario.setUnique(true);
-			Usuario usuario = (Usuario) queryUsuario.execute(nombreUsuario);
-			
-			if (usuario == null) {
-				logger.info("Usuario no encontrado: {}", nombreUsuario);
-				txTemp.rollback();
-				return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
-			}
-			
-			// Buscar entradas del usuario
-			Query<Entrada> queryEntradas = pmTemp.newQuery(Entrada.class, "usuario.nombreUsuario == :nombreUsuario");
-			queryEntradas.setParameters(nombreUsuario);
-			
-			@SuppressWarnings("unchecked")
-			List<Entrada> entradas = (List<Entrada>) queryEntradas.execute();
-			
-			if (entradas != null) {
-				logger.info("Se encontraron {} entradas para el usuario {}", entradas.size(), nombreUsuario);
-				txTemp.commit();
-				return Response.ok(entradas).build();
-			} else {
-				logger.info("No se encontraron entradas para el usuario {}", nombreUsuario);
-				txTemp.commit(); // Aún así, es un resultado válido (lista vacía)
-				return Response.ok(new ArrayList<Entrada>()).build();
-			}
-			
-		} catch (Exception e) {
-			logger.error("Error al obtener entradas: {}", e.getMessage());
-			if (txTemp != null && txTemp.isActive()) {
-				txTemp.rollback();
-			}
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener entradas").build();
-		} finally {
-			if (pmTemp != null && !pmTemp.isClosed()) {
-				pmTemp.close();
-			}
-		}
-	}
+ * Obtiene las entradas de un usuario específico
+ * @param nombreUsuario Nombre de usuario
+ * @return Response con las entradas o error si no hay
+ */
+@GET
+@Path("/getEntradas/{nombreUsuario}")
+@Produces(MediaType.APPLICATION_JSON)
+public Response getEntradas(@PathParam("nombreUsuario") String nombreUsuario) {
+    PersistenceManager pmTemp = null;
+    Transaction txTemp = null;
+    
+    try {
+        PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+        pmTemp = pmf.getPersistenceManager();
+        txTemp = pmTemp.currentTransaction();
+        txTemp.begin();
+        
+        // Buscar usuario
+        Query<Usuario> queryUsuario = pmTemp.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
+        queryUsuario.setUnique(true);
+        Usuario usuario = (Usuario) queryUsuario.execute(nombreUsuario);
+        
+        if (usuario == null) {
+            logger.info("Usuario no encontrado: {}", nombreUsuario);
+            txTemp.rollback();
+            return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
+        }
+        
+        // Buscar entradas del usuario
+        Query<Entrada> queryEntradas = pmTemp.newQuery(Entrada.class, "usuario.nombreUsuario == :nombreUsuario");
+
+        @SuppressWarnings("unchecked")
+        List<Entrada> entradas = (List<Entrada>) queryEntradas.execute(nombreUsuario);
+        
+        if (entradas != null) {
+            logger.info("Se encontraron {} entradas para el usuario {}", entradas.size(), nombreUsuario);
+            txTemp.commit();
+            return Response.ok(entradas).build();
+        } else {
+            logger.info("No se encontraron entradas para el usuario {}", nombreUsuario);
+            txTemp.commit(); // Aún así, es un resultado válido (lista vacía)
+            return Response.ok(new ArrayList<Entrada>()).build();
+        }
+        
+    } catch (Exception e) {
+        logger.error("Error al obtener entradas: {}", e.getMessage());
+        if (txTemp != null && txTemp.isActive()) {
+            txTemp.rollback();
+        }
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener entradas").build();
+    } finally {
+        if (pmTemp != null && !pmTemp.isClosed()) {
+            pmTemp.close();
+        }
+    }
+}
 	
 	/**
 	 * Clase para representar los datos de la compra de entradas

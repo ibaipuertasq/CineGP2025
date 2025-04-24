@@ -10,7 +10,8 @@ public class Sala {
     
     @Persistent private int numero;
     @Persistent private int capacidad;
-    @Persistent private List<Asiento> asientos;
+    @Persistent(defaultFetchGroup = "true")
+    private List<Asiento> asientos;
 
     public Sala() {
     }

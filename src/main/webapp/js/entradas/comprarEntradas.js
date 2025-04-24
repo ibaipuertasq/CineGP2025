@@ -530,6 +530,17 @@ async function procesarCompra() {
         // Obtener datos para la compra
         const horario = document.getElementById('selectHorario').value;
         const metodoPago = document.getElementById('metodoPago').value;
+        const response1 = await fetch("http://localhost:8080/rest/resource/getCines", {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            }
+        });
+        
+        if (!response1.ok) {
+            throw new Error(`Error al cargar películas: ${response.status}`);
+        }
         
         // Preparar datos para enviar al servidor
         const datosCompra = {

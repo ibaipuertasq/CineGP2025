@@ -171,7 +171,7 @@ function mostrarEntradas(entradas) {
                 </div>
                 <div class="codigo-qr">
                     <div class="qr-image">
-                        <span>Código QR de la entrada</span>
+                        <img src="../../images/qr.png" alt="QR Code" />
                     </div>
                 </div>
                 <div class="entrada-actions">

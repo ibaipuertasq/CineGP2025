@@ -70,7 +70,7 @@
 }
 
 .asiento.ocupado {
-    background-color: #f44336;
+    background-color: #f44336 !important;
     cursor: not-allowed;
     opacity: 0.8;
 }
@@ -438,9 +438,10 @@
     margin: 15px 0;
 }
 
-.qr-image {
-    width: 150px;
-    height: 150px;
+.qr-image img{
+    width: 80px;
+    height: 80px;
+    max-width: 100% !important;
     border: 1px solid #ddd;
     background-color: white;
     display: flex;
@@ -449,6 +450,7 @@
     color: #666;
     font-size: 14px;
     text-align: center;
+
 }
 
 .entrada-actions {
