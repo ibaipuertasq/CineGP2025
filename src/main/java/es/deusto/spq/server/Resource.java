@@ -2,6 +2,7 @@ package es.deusto.spq.server;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,8 @@ import javax.ws.rs.core.Response;
 
 import es.deusto.spq.server.jdo.Usuario;
 import es.deusto.spq.server.jdo.Asiento;
+import es.deusto.spq.server.jdo.Cine;
+import es.deusto.spq.server.jdo.Entrada;
 import es.deusto.spq.server.jdo.Pelicula;
 import es.deusto.spq.server.jdo.Sala;
 import es.deusto.spq.server.jdo.TipoAsiento;
@@ -275,7 +278,7 @@ public class Resource {
     
 
 
-		/**
+	/**
 	 * Deletes a user account based on the provided DNI (Documento Nacional de
 	 * Identidad).
 	 * 
@@ -319,7 +322,7 @@ public class Resource {
 	}
 
 
-		/**
+	/**
 	 * Retrieves the user with the specified ID.
 	 * 
 	 * @param id the ID of the user
@@ -356,6 +359,50 @@ public class Resource {
 				tx.rollback();
 			}
 			pm.close();
+		}
+	}
+	
+	/**
+	 * Obtiene información del usuario por nombre de usuario
+	 * @param nombreUsuario Nombre de usuario a buscar
+	 * @return Response con los datos del usuario o error si no se encuentra
+	 */
+	@GET
+	@Path("/getUsuario/{nombreUsuario}")
+	public Response getUsuario(@PathParam("nombreUsuario") String nombreUsuario) {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+		
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+			
+			// Buscar usuario por nombre de usuario
+			Query<Usuario> query = pmTemp.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
+			query.setUnique(true);
+			Usuario usuario = (Usuario) query.execute(nombreUsuario);
+			
+			if (usuario != null) {
+				logger.info("Usuario encontrado: {}", usuario);
+				txTemp.commit();
+				return Response.ok(usuario).build();
+			} else {
+				logger.info("Usuario no encontrado: {}", nombreUsuario);
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
+			}
+		} catch (Exception e) {
+			logger.error("Error al buscar usuario: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al buscar usuario").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
 		}
 	}
 
@@ -575,7 +622,7 @@ public class Resource {
 	}
 
 
-		/**
+	/**
 	 * Verifica si hay películas en la base de datos y, si no las hay, inicializa
 	 * con un conjunto predeterminado de películas.
 	 * 
@@ -772,151 +819,487 @@ public class Resource {
 			}
 		}
 	}
-
-}
-
-
-/*
-
-@GET
-@Path("/getHorarios/{peliculaId}")
-@Produces(MediaType.APPLICATION_JSON)
-public Response getHorarios(@PathParam("peliculaId") Long peliculaId) {
-    try (PersistenceManager pm = JDOHelper.getPersistenceManagerFactory("datanucleus.properties").getPersistenceManager()) {
-        // Busca la película por su ID
-        Pelicula pelicula = pm.getObjectById(Pelicula.class, peliculaId);
-
-        if (pelicula != null) {
-            // Devuelve los horarios asociados a la película
-            List<Horario> horarios = pelicula.getHorarios();
-            return Response.ok(horarios).build();
-        } else {
-            return Response.status(Response.Status.NOT_FOUND).entity("Película no encontrada").build();
-        }
-    } catch (Exception e) {
-        logger.error("Error al obtener los horarios: {}", e.getMessage());
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener los horarios").build();
-    }
-}
-
-
+	
 	/**
-	 * This method is used to handle the request for buying a ticket.
-	 * It creates a new ticket based on the provided peli ID, tipoAsiento, and quantity.
-	 * If the ticket already exists, it returns an unauthorized response.
-	 * Otherwise, it creates the ticket, persists it, and returns a success
-	 * response.
-	 *
-	 * @param peliId  The ID of the peli for which the ticket is being purchased.
-	 * @param tipoAsiento   The tipoAsiento of the peli where the ticket will be located.
-	 * @param cantidad The quantity of tickets being purchased.
-	 * @return A Response object indicating the success or failure of the ticket
-	 *         purchase.
-	 */ /* 
-	@SuppressWarnings("null")
-	@GET
-	@Path("/comprarEntrada/{idPelicula}/{tipoAsiento}/{cantidad}")
-	public Response comprarEntrada(@PathParam("idPelicula") String peliId, @PathParam("tipoAsiento") String tipoAsiento,
-			@PathParam("cantidad") String cantidad) {
-		try {
-			tx.begin();
-
-			Entrada ticket = null;
-			Pelicula peli = null;
-
-			try {
-				peli = pm.getObjectById(Pelicula.class, peliId);
-			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
-				logger.info("Exception launched: {}", jonfe.getMessage());
-			}
-
-			Entrada entrada = null;
-
-			System.out.println(tipoAsiento);
-
-			if (TipoAsiento.VIP.toString().equals(tipoAsiento.toUpperCase())) {
-				//entrada = new Entrada(usuario, peli, 100, TipoAsiento.VIP);	// usuario, cine, precio, asiento, tipoAsiento
-			} else if (TipoAsiento.NORMAL.toString().equals(tipoAsiento.toUpperCase())) {
-				//entrada = new Entrada(usuario, peli, 20, TipoAsiento.NORMAL);
-			} else if (TipoAsiento.DISCAPACITADOS.toString().equals(tipoAsiento.toUpperCase())) {
-				//entrada = new Entrada(usuario, peli, 30, TipoAsiento.DISCAPACITADOS);
-			} 
-
-			try {
-				ticket = pm.getObjectById(Entrada.class, entrada.getId());
-			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
-				logger.info("Exception launched: {}", jonfe.getMessage());
-			}
-
-			if (ticket != null) {
-				logger.info("Ticket already exists!");
-				tx.rollback();
-				return Response.status(Response.Status.UNAUTHORIZED).entity("Ticket already exists").build();
-			} else {
-				if (tipoAsientoesPelicula.VIP.toString().equals(tipoAsiento.toUpperCase())) {
-					ticket = new Entrada(null, peli, 100, tipoAsientoesPelicula.VIP);
-					Mensaje mensaje = new Mensaje();
-					if (usuario.getTelefono().contains("+34")) {
-						mensaje.setTelefono(usuario.getTelefono());
-						mensaje.setMensaje("¡Hola! Has comprado una entrada VIP para el Pelicula " + peli.getNombre()
-								+ " en la fecha " + peli.getFecha() + " en " + peli.getLugar()
-								+ ". ¡Disfruta del Pelicula!");
-						sendMSG(mensaje);
-					} else {
-						mensaje.setTelefono("+34" + usuario.getTelefono());
-						mensaje.setMensaje("¡Hola! Has comprado una entrada VIP para el Pelicula " + peli.getNombre()
-								+ " en la fecha " + peli.getFecha() + " en " + peli.getLugar()
-								+ ". ¡Disfruta del Pelicula!");
-						sendMSG(mensaje);
-					}
-				} else if (tipoAsientoesPelicula.GRADA_ALTA.toString().equals(tipoAsiento.toUpperCase())) {
-					ticket = new Entrada(null, peli, 20, tipoAsientoesPelicula.GRADA_ALTA);
-					Mensaje mensaje = new Mensaje();
-					if (usuario.getTelefono().contains("+34")) {
-						mensaje.setTelefono(usuario.getTelefono());
-						mensaje.setMensaje("¡Hola! Has comprado una entrada en el tipoAsiento GRADA ALTA para el Pelicula "
-								+ peli.getNombre() + " en la fecha " + peli.getFecha() + " en " + peli.getLugar()
-								+ ". ¡Disfruta del Pelicula!");
-						sendMSG(mensaje);
-					} else {
-						mensaje.setTelefono("+34" + usuario.getTelefono());
-						mensaje.setMensaje("¡Hola! Has comprado una entrada en el tipoAsiento GRADA ALTA para el Pelicula "
-								+ peli.getNombre() + " en la fecha " + peli.getFecha() + " en " + peli.getLugar()
-								+ ". ¡Disfruta del Pelicula!");
-						sendMSG(mensaje);
-					}
-				} else if (tipoAsientoesPelicula.GRADA_MEDIA.toString().equals(tipoAsiento.toUpperCase())) {
-					ticket = new Entrada(null, peli, 30, tipoAsientoesPelicula.GRADA_MEDIA);
-					Mensaje mensaje = new Mensaje();
-					if (usuario.getTelefono().contains("+34")) {
-						mensaje.setTelefono(usuario.getTelefono());
-						mensaje.setMensaje("¡Hola! Has comprado una entrada en el tipoAsiento GRADA MEDIA para el Pelicula "
-								+ peli.getNombre() + " en la fecha " + peli.getFecha() + " en " + peli.getLugar()
-								+ ". ¡Disfruta del Pelicula!");
-						sendMSG(mensaje);
-					} else {
-						mensaje.setTelefono("+34" + usuario.getTelefono());
-						mensaje.setMensaje("¡Hola! Has comprado una entrada en el tipoAsiento GRADA MEDIA para el Pelicula "
-								+ peli.getNombre() + " en la fecha " + peli.getFecha() + " en " + peli.getLugar()
-								+ ". ¡Disfruta del Pelicula!");
-						sendMSG(mensaje);
-					}
-				} 
-
-				logger.info("Creating ticket: {}", ticket);
-
-				pm.makePersistent(ticket);
-				logger.info("Ticket created: {}", ticket);
-				tx.commit();
-				return Response.ok().build();
-			}
-		} finally {
-			if (tx.isActive()) {
-				tx.rollback();
-			}
-
-		}
-
-	}
-
+	 * Obtiene los asientos de una sala
+	 * @param salaId ID de la sala
+	 * @return Response con la lista de asientos o error si no se encuentra
 	 */
+	@GET
+	@Path("/getAsientos/{salaId}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getAsientos(@PathParam("salaId") long salaId) {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+		
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+			
+			// Obtener la sala por ID
+			Sala sala = null;
+			try {
+				sala = pmTemp.getObjectById(Sala.class, salaId);
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Sala no encontrada con ID: {}", salaId);
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Sala no encontrada").build();
+			}
+			
+			// Obtener los asientos de la sala
+			List<Asiento> asientos = sala.getAsientos();
+			
+			logger.info("Sala {}: {} asientos encontrados", salaId, asientos.size());
+			txTemp.commit();
+			return Response.ok(asientos).build();
+			
+		} catch (Exception e) {
+			logger.error("Error al obtener asientos: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener asientos").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+	
+	/**
+	 * Obtiene un cine por su ID
+	 * @param cineId ID del cine
+	 * @return Response con el cine o error si no se encuentra
+	 */
+	@GET
+	@Path("/getCine/{cineId}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getCine(@PathParam("cineId") long cineId) {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+		
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+			
+			// Obtener el cine por ID
+			Cine cine = null;
+			try {
+				cine = pmTemp.getObjectById(Cine.class, cineId);
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Cine no encontrado con ID: {}", cineId);
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Cine no encontrado").build();
+			}
+			
+			logger.info("Cine encontrado: {}", cine);
+			txTemp.commit();
+			return Response.ok(cine).build();
+			
+		} catch (Exception e) {
+			logger.error("Error al obtener cine: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener cine").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+	
+	/**
+	 * Obtiene todos los cines disponibles
+	 * @return Response con la lista de cines o error si no hay
+	 */
+	@GET
+	@Path("/getCines")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getCines() {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+		
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+			
+			// Buscar todos los cines
+			Query<Cine> query = pmTemp.newQuery(Cine.class);
+			
+			@SuppressWarnings("unchecked")
+			List<Cine> cines = (List<Cine>) query.execute();
+			
+			// Si no hay cines, crear uno por defecto
+			if (cines == null || cines.isEmpty()) {
+				logger.info("No se encontraron cines. Creando cine por defecto.");
+				
+				// Crear un cine con las salas existentes
+				Query<Sala> querySalas = pmTemp.newQuery(Sala.class);
+				@SuppressWarnings("unchecked")
+				List<Sala> salas = (List<Sala>) querySalas.execute();
+				
+				if (salas != null && !salas.isEmpty()) {
+					Cine cineDefault = new Cine(1, "CineGP", "Av. Universidad 123", salas);
+					pmTemp.makePersistent(cineDefault);
+					
+					cines = new ArrayList<>();
+					cines.add(cineDefault);
+					
+					logger.info("Cine por defecto creado: {}", cineDefault);
+				}
+			}
+			
+			if (cines != null && !cines.isEmpty()) {
+				logger.info("{} cines encontrados", cines.size());
+				txTemp.commit();
+				return Response.ok(cines).build();
+			} else {
+				logger.info("No se encontraron cines");
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("No se encontraron cines").build();
+			}
+			
+		} catch (Exception e) {
+			logger.error("Error al obtener cines: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener cines").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+	
+	/**
+	 * Obtiene las entradas de un usuario específico
+	 * @param nombreUsuario Nombre de usuario
+	 * @return Response con las entradas o error si no hay
+	 */
+	@GET
+	@Path("/getEntradas/{nombreUsuario}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getEntradas(@PathParam("nombreUsuario") String nombreUsuario) {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+		
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+			
+			// Buscar usuario
+			Query<Usuario> queryUsuario = pmTemp.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
+			queryUsuario.setUnique(true);
+			Usuario usuario = (Usuario) queryUsuario.execute(nombreUsuario);
+			
+			if (usuario == null) {
+				logger.info("Usuario no encontrado: {}", nombreUsuario);
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
+			}
+			
+			// Buscar entradas del usuario
+			Query<Entrada> queryEntradas = pmTemp.newQuery(Entrada.class, "usuario.nombreUsuario == :nombreUsuario");
+			queryEntradas.setParameters(nombreUsuario);
+			
+			@SuppressWarnings("unchecked")
+			List<Entrada> entradas = (List<Entrada>) queryEntradas.execute();
+			
+			if (entradas != null) {
+				logger.info("Se encontraron {} entradas para el usuario {}", entradas.size(), nombreUsuario);
+				txTemp.commit();
+				return Response.ok(entradas).build();
+			} else {
+				logger.info("No se encontraron entradas para el usuario {}", nombreUsuario);
+				txTemp.commit(); // Aún así, es un resultado válido (lista vacía)
+				return Response.ok(new ArrayList<Entrada>()).build();
+			}
+			
+		} catch (Exception e) {
+			logger.error("Error al obtener entradas: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener entradas").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+	
+	/**
+	 * Clase para representar los datos de la compra de entradas
+	 */
+	public static class CompraEntradaDTO {
+		private String nombreUsuario;
+		private long cineId;
+		private long peliculaId;
+		private String horario;
+		private List<AsientoDTO> asientos;
+		private String metodoPago;
+		private int precioTotal;
+		
+		// Getters y setters
+		public String getNombreUsuario() { return nombreUsuario; }
+		public void setNombreUsuario(String nombreUsuario) { this.nombreUsuario = nombreUsuario; }
+		
+		public long getCineId() { return cineId; }
+		public void setCineId(long cineId) { this.cineId = cineId; }
+		
+		public long getPeliculaId() { return peliculaId; }
+		public void setPeliculaId(long peliculaId) { this.peliculaId = peliculaId; }
+		
+		public String getHorario() { return horario; }
+		public void setHorario(String horario) { this.horario = horario; }
+		
+		public List<AsientoDTO> getAsientos() { return asientos; }
+		public void setAsientos(List<AsientoDTO> asientos) { this.asientos = asientos; }
+		
+		public String getMetodoPago() { return metodoPago; }
+		public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
+		
+		public int getPrecioTotal() { return precioTotal; }
+		public void setPrecioTotal(int precioTotal) { this.precioTotal = precioTotal; }
+	}
+	
+	/**
+	 * Clase para representar datos de asientos en la compra
+	 */
+	public static class AsientoDTO {
+		private int numero;
+		private TipoAsiento tipo;
+		private int precio;
+		
+		// Getters y setters
+		public int getNumero() { return numero; }
+		public void setNumero(int numero) { this.numero = numero; }
+		
+		public TipoAsiento getTipo() { return tipo; }
+		public void setTipo(TipoAsiento tipo) { this.tipo = tipo; }
+		
+		public int getPrecio() { return precio; }
+		public void setPrecio(int precio) { this.precio = precio; }
+	}
+	
+	/**
+	 * Endpoint para comprar entradas
+	 * @param compraDTO Datos de la compra
+	 * @return Response con el resultado de la operación
+	 */
+	@POST
+	@Path("/comprarEntradas")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response comprarEntradas(CompraEntradaDTO compraDTO) {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+		
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+			
+			// Validar datos de entrada
+			if (compraDTO.getNombreUsuario() == null || compraDTO.getAsientos() == null || compraDTO.getAsientos().isEmpty()) {
+				logger.error("Datos de compra incompletos o inválidos");
+				txTemp.rollback();
+				return Response.status(Response.Status.BAD_REQUEST).entity("Datos de compra incompletos").build();
+			}
+			
+			// Buscar usuario
+			Query<Usuario> queryUsuario = pmTemp.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
+			queryUsuario.setUnique(true);
+			Usuario usuario = (Usuario) queryUsuario.execute(compraDTO.getNombreUsuario());
+			
+			if (usuario == null) {
+				logger.info("Usuario no encontrado: {}", compraDTO.getNombreUsuario());
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
+			}
+			
+			// Buscar cine
+			Cine cine = null;
+			try {
+				cine = pmTemp.getObjectById(Cine.class, compraDTO.getCineId());
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Cine no encontrado con ID: {}", compraDTO.getCineId());
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Cine no encontrado").build();
+			}
+			
+			// Buscar película
+			Pelicula pelicula = null;
+			try {
+				pelicula = pmTemp.getObjectById(Pelicula.class, compraDTO.getPeliculaId());
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Película no encontrada con ID: {}", compraDTO.getPeliculaId());
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Película no encontrada").build();
+			}
+			
+			// Buscar sala (desde la película)
+			Sala sala = pelicula.getSala();
+			if (sala == null) {
+				logger.error("La película no tiene sala asignada");
+				txTemp.rollback();
+				return Response.status(Response.Status.BAD_REQUEST).entity("La película no tiene sala asignada").build();
+			}
+			
+			// Crear y guardar entradas
+			List<Entrada> entradasCreadas = new ArrayList<>();
+			
+			for (AsientoDTO asientoDTO : compraDTO.getAsientos()) {
+				// Buscar el asiento en la sala
+				Asiento asientoSala = null;
+				for (Asiento a : sala.getAsientos()) {
+					if (a.getNumero() == asientoDTO.getNumero()) {
+						asientoSala = a;
+						break;
+					}
+				}
+				
+				// Verificar que el asiento existe y está disponible
+				if (asientoSala == null) {
+					logger.error("Asiento {} no encontrado en la sala {}", asientoDTO.getNumero(), sala.getId());
+					txTemp.rollback();
+					return Response.status(Response.Status.BAD_REQUEST)
+						.entity("Asiento " + asientoDTO.getNumero() + " no encontrado en la sala").build();
+				}
+				
+				if (asientoSala.isOcupado()) {
+					logger.error("Asiento {} ya está ocupado", asientoDTO.getNumero());
+					txTemp.rollback();
+					return Response.status(Response.Status.BAD_REQUEST)
+						.entity("Asiento " + asientoDTO.getNumero() + " ya está ocupado").build();
+				}
+				
+				// Marcar el asiento como ocupado
+				asientoSala.setOcupado(true);
+				
+				// Crear la entrada
+				Entrada entrada = new Entrada();
+				entrada.setUsuario(usuario);
+				entrada.setCine(cine);
+				entrada.setPrecio(asientoDTO.getPrecio());
+				entrada.setAsiento(asientoDTO.getNumero());
+				entrada.setTipoAsiento(asientoDTO.getTipo());
+				
+				// Persistir la entrada
+				pmTemp.makePersistent(entrada);
+				entradasCreadas.add(entrada);
+				
+				logger.info("Entrada creada: {}", entrada);
+			}
+			
+			txTemp.commit();
+			
+			// Construir respuesta con resumen de la compra
+			Map<String, Object> respuesta = new HashMap<>();
+			respuesta.put("status", "success");
+			respuesta.put("message", "Compra realizada con éxito");
+			respuesta.put("totalEntradas", entradasCreadas.size());
+			respuesta.put("precioTotal", compraDTO.getPrecioTotal());
+			
+			return Response.ok(respuesta).build();
+			
+		} catch (Exception e) {
+			logger.error("Error al procesar la compra: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al procesar la compra: " + e.getMessage()).build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+	
+	/**
+	 * Endpoint para cancelar una entrada
+	 * @param entradaId ID de la entrada a cancelar
+	 * @return Response con el resultado de la operación
+	 */
+	@DELETE
+	@Path("/cancelarEntrada/{entradaId}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response cancelarEntrada(@PathParam("entradaId") long entradaId) {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+		
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+			
+			// Buscar la entrada
+			Entrada entrada = null;
+			try {
+				entrada = pmTemp.getObjectById(Entrada.class, entradaId);
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Entrada no encontrada con ID: {}", entradaId);
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Entrada no encontrada").build();
+			}
+			
+			// Liberar el asiento correspondiente
+			Sala sala = null;
+			if (entrada.getCine() != null && !entrada.getCine().getSalas().isEmpty()) {
+				// Buscar la sala correspondiente
+				for (Sala s : entrada.getCine().getSalas()) {
+					if (s.getAsientos() != null) {
+						for (Asiento a : s.getAsientos()) {
+							if (a.getNumero() == entrada.getAsiento()) {
+								// Marcar el asiento como libre
+								a.setOcupado(false);
+								sala = s;
+								break;
+							}
+						}
+					}
+					if (sala != null) break;
+				}
+			}
+			
+			// Eliminar la entrada
+			pmTemp.deletePersistent(entrada);
+			
+			logger.info("Entrada {} cancelada", entradaId);
+			if (sala != null) {
+				logger.info("Asiento {} liberado en sala {}", entrada.getAsiento(), sala.getId());
+			}
+			
+			txTemp.commit();
+			
+			Map<String, Object> respuesta = new HashMap<>();
+			respuesta.put("status", "success");
+			respuesta.put("message", "Entrada cancelada con éxito");
+			
+			return Response.ok(respuesta).build();
+			
+		} catch (Exception e) {
+			logger.error("Error al cancelar la entrada: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al cancelar la entrada: " + e.getMessage()).build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+}
