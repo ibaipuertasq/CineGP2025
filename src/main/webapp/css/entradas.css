@@ -438,10 +438,9 @@
     margin: 15px 0;
 }
 
-.qr-image img{
+.qr-image {
     width: 80px;
     height: 80px;
-    max-width: 100% !important;
     border: 1px solid #ddd;
     background-color: white;
     display: flex;

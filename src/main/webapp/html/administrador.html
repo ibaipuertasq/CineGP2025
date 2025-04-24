@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CineGP - Tu Cine de Confianza</title>
     <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../salas.css">
     <link rel="stylesheet" href="../css/administrador.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
@@ -54,7 +55,7 @@
                 <table id="tabla" class="content-table">
                     <thead>
                         <tr>
-                            <th colspan="5">Películas</th>
+                            <th colspan="6">Películas</th>
                         </tr>
                         <tr>
                             <th>Título</th>
@@ -62,44 +63,49 @@
                             <th>Duración</th>
                             <th>Sala</th>
                             <th>Horario</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tablaPeliculasBody">
                         <!-- Las filas de películas se cargarán dinámicamente desde cargarPeliculas.js -->
+                        <tr>
+                            <td colspan="6" class="text-center">
+                                <div class="loading-spinner"></div>
+                                <p>Cargando películas...</p>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
             <div class="button-container">
-                <button id="botonNuevaPelicula" class="boton" type="button">Añadir nueva películas</button>
+                <button id="btnComprarEntradas" class="boton" type="button">Comprar Entradas</button>
             </div>
         </section>
 
-        <section id="entradas" class="section">
+        <section id="salas" class="section">
             <div class="section-header">
-                <h2>Mis Entradas</h2>
-                <p>Aquí puedes ver las entradas que has comprado. Gestiona tus reservas y prepárate para disfrutar de la función.</p>
+                <h2>Gestionar Salas</h2>
+                <p>Aquí puedes ver todas las salas y gestionar su estado (disponible o no disponible).</p>
             </div>
+        
             <div class="table-container">
-                <table id="tablaEntrada" class="content-table">
+                <table id="tablaSalas" class="content-table">
                     <thead>
                         <tr>
-                            <th colspan="5">Entradas</th>
-                        </tr>
-                        <tr>
                             <th>#</th>
-                            <th>Película</th>
-                            <th>Horario</th>
-                            <th>Sala</th>
+                            <th>Número</th>
+                            <th>Capacidad</th>
+                            <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Entradas del usuario -->
+                        <!-- Las salas se cargarán dinámicamente -->
                     </tbody>
                 </table>
             </div>
             <div class="button-container">
-                <button id="botonEntradas" class="boton" type="button">Comprar Entradas</button>
+                <button id="btnAgregarSala" class="boton">Agregar Sala</button>
             </div>
         </section>
     </main>
@@ -112,6 +118,7 @@
 
     <script src="../js/administrador.js"></script>
     <script src="../js/pelicula/cargarPeliculasAdmin.js"></script>
+    <script src="../js/sala/cargarSalas.js"></script>
 </body>
 
 </html>

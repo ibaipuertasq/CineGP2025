@@ -756,7 +756,7 @@ public class Resource {
 			}
 			
 			// Crear la sala con sus asientos
-			salas[i] = new Sala(i + 1, i + 1, capacidad, asientos);
+			salas[i] = new Sala(i + 1, i + 1, capacidad, asientos, true);
 			pm.makePersistent(salas[i]); // Persistir la sala
 			
 			logger.info("Sala {} creada con {} asientos", i + 1, capacidad);
@@ -1301,4 +1301,67 @@ public Response getEntradas(@PathParam("nombreUsuario") String nombreUsuario) {
 			}
 		}
 	}
+
+
+	@PUT
+	@Path("/cambiarEstadoSala/{salaId}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response cambiarEstadoSala(@PathParam("salaId") long salaId, Map<String, Boolean> estado) {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+
+			// Obtener la sala por ID
+			Sala sala = pmTemp.getObjectById(Sala.class, salaId);
+			if (sala == null) {
+				logger.info("Sala no encontrada con ID: {}", salaId);
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Sala no encontrada").build();
+			}
+
+			// Cambiar el estado de la sala
+			boolean nuevoEstado = estado.get("disponible");
+			sala.setDisponible(nuevoEstado);
+			logger.info("Estado de la sala {} cambiado a {}", salaId, nuevoEstado ? "Disponible" : "No Disponible");
+
+			txTemp.commit();
+			return Response.ok().build();
+		} catch (Exception e) {
+			logger.error("Error al cambiar el estado de la sala: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al cambiar el estado de la sala").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+
+	@PUT
+	@Path("/actualizarAsientos/{salaId}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response actualizarAsientos(@PathParam("salaId") long salaId, List<Asiento> asientosActualizados) {
+		try (PersistenceManager pm = JDOHelper.getPersistenceManagerFactory("datanucleus.properties").getPersistenceManager()) {
+			Sala sala = pm.getObjectById(Sala.class, salaId);
+			if (sala == null) {
+				return Response.status(Response.Status.NOT_FOUND).entity("Sala no encontrada").build();
+			}
+
+			sala.setAsientos(asientosActualizados);
+			return Response.ok().build();
+		} catch (Exception e) {
+			logger.error("Error al actualizar los asientos: {}", e.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al actualizar los asientos").build();
+		}
+	}
+
 }

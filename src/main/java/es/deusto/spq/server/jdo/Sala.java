@@ -10,17 +10,21 @@ public class Sala {
     
     @Persistent private int numero;
     @Persistent private int capacidad;
+    @Persistent private boolean disponible;
+    
+
     @Persistent(defaultFetchGroup = "true")
     private List<Asiento> asientos;
 
     public Sala() {
     }
 
-    public Sala(long id, int numero, int capacidad, List<Asiento> asientos) {
+    public Sala(long id, int numero, int capacidad, List<Asiento> asientos, boolean disponible) {
         this.id = id;
         this.numero = numero;
         this.capacidad = capacidad;
         this.asientos = asientos;
+        this.disponible = disponible;
     }
 
     public long getId() {
@@ -47,6 +51,15 @@ public class Sala {
         this.capacidad = capacidad;
     }
 
+
+    public void setDisponible(boolean disponible) {
+        this.disponible = disponible;
+    }
+
+    public boolean isDisponible() {
+        return disponible;
+    }
+
     public List<Asiento> getAsientos() {
         return asientos;
     }
@@ -66,6 +79,6 @@ public class Sala {
     }
 
     public String toStringCorto() {
-        return "Sala " + numero + " con capacidad de " + capacidad + " asientos.";
+        return "Sala " + numero + " con capacidad de " + capacidad + " asientos." + (disponible ? "Dsiponible" : "No disponible");
     }
 }
