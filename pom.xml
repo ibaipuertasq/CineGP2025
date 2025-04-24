@@ -69,6 +69,13 @@
 		</dependency>
 
 		<dependency>
+   			<groupId>org.apache.logging.log4j</groupId>
+    		<artifactId>log4j-slf4j-impl</artifactId>
+    		<version>2.24.3</version>
+    		<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-grizzly2-http</artifactId>
 		</dependency>
@@ -163,6 +170,14 @@
 					<!-- option required to avoid 'The command line is too long.' error in Windows -->
 					<fork>false</fork>
 				</configuration>
+				<executions>
+        			<execution>
+            			<phase>process-classes</phase>
+            			<goals>
+                			<goal>enhance</goal>
+            			</goals>
+        			</execution>
+    			</executions>
 			</plugin>
 
 			<plugin>
@@ -197,7 +212,26 @@
 					<nohelp>true</nohelp>
 				</configuration>
 			</plugin>
-
+			
+			<plugin>
+    			<groupId>org.jacoco</groupId>
+    			<artifactId>jacoco-maven-plugin</artifactId>
+    			<version>0.8.12</version>
+    			<executions>
+        		<execution>
+            	<goals>
+                	<goal>prepare-agent</goal>
+            	</goals>
+        		</execution>
+        			<execution>
+            			<id>report</id>
+            			<phase>test</phase>
+            			<goals>
+                			<goal>report</goal>
+            			</goals>
+        			</execution>
+    			</executions>
+			</plugin>
 	
 		</plugins>
 	</build>

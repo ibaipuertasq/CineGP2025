@@ -39,11 +39,11 @@ To launch the JUnits run the commnad
 
 Pruebas de Integración:
 
-      mvn verify -Pintegration-tests
+      mvn clean verify -Pintegration-tests
 
 Pruebas de Rendimiento:
 
-      mvn verify -Pperformance-tests
+      mvn clean verify -Pperformance-tests
 
 To launch the web client open the link:
 
