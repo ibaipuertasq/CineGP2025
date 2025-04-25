@@ -4,11 +4,13 @@ import static org.junit.Assert.assertEquals;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManager;
 import javax.jdo.PersistenceManagerFactory;
 import javax.jdo.Transaction;
+import javax.jdo.Query;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -73,25 +75,38 @@ public class ServerPerformanceTest {
         try {
             tx.begin();
 
-            // Limpiar la base de datos primero
-            System.out.println("Cleaning database...");
-            pm.newQuery(Usuario.class).deletePersistentAll();
-            pm.newQuery(Pelicula.class).deletePersistentAll();
+            // Verificar si el usuario ya existe
+            System.out.println("Checking for existing test user...");
+            Query<Usuario> userQuery = pm.newQuery(Usuario.class, "dni == :dni");
+            @SuppressWarnings("unchecked")
+            List<Usuario> existingUsers = (List<Usuario>) userQuery.execute("12345678A");
+            if (existingUsers.isEmpty()) {
+                System.out.println("Persisting test user...");
+                usuario = new Usuario("12345678A", "Test", "User", "test@example.com", "testuser", "password", "Calle 123", "987654321", TipoUsuario.CLIENTE);
+                pm.makePersistent(usuario);
+            } else {
+                System.out.println("Test user already exists, skipping insertion.");
+                usuario = existingUsers.get(0);
+            }
 
-            // Crear un usuario de prueba
-            System.out.println("Persisting test user...");
-            usuario = new Usuario("12345678A", "Test", "User", "test@example.com", "testuser", "password", "Calle 123", "987654321", TipoUsuario.CLIENTE);
-            pm.makePersistent(usuario);
-
-            // Crear una película de prueba (sin Sala)
-            System.out.println("Persisting test movie...");
-            pelicula = new Pelicula("Test Movie", "Drama", 120, fecha, "Test Director", "Test Synopsis", "18:00", null);
-            pm.makePersistent(pelicula);
+            // Verificar si la película ya existe
+            System.out.println("Checking for existing test movie...");
+            Query<Pelicula> movieQuery = pm.newQuery(Pelicula.class, "titulo == :titulo");
+            @SuppressWarnings("unchecked")
+            List<Pelicula> existingMovies = (List<Pelicula>) movieQuery.execute("Test Movie");
+            if (existingMovies.isEmpty()) {
+                System.out.println("Persisting test movie...");
+                pelicula = new Pelicula("Test Movie", "Drama", 120, fecha, "Test Director", "Test Synopsis", "18:00", null);
+                pm.makePersistent(pelicula);
+            } else {
+                System.out.println("Test movie already exists, skipping insertion.");
+                pelicula = existingMovies.get(0);
+            }
 
             tx.commit();
-            System.out.println("Test data persisted successfully.");
+            System.out.println("Test data prepared successfully.");
         } catch (Exception e) {
-            System.err.println("Error persisting test data: " + e.getMessage());
+            System.err.println("Error preparing test data: " + e.getMessage());
             e.printStackTrace();
             throw e;
         } finally {
@@ -114,27 +129,6 @@ public class ServerPerformanceTest {
         if (server != null) {
             server.shutdown();
             System.out.println("Server shut down.");
-        }
-
-        // Limpiar la base de datos
-        PersistenceManager pm = pmf.getPersistenceManager();
-        Transaction tx = pm.currentTransaction();
-        try {
-            tx.begin();
-            System.out.println("Cleaning database in tearDown...");
-            pm.newQuery(Usuario.class).deletePersistentAll();
-            pm.newQuery(Pelicula.class).deletePersistentAll();
-            tx.commit();
-            System.out.println("Database cleaned in tearDown.");
-        } catch (Exception e) {
-            System.err.println("Error cleaning database in tearDown: " + e.getMessage());
-            e.printStackTrace();
-            throw e;
-        } finally {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-            pm.close();
         }
     }
 

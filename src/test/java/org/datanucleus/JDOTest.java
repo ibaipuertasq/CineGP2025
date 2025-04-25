@@ -38,41 +38,13 @@ public class JDOTest {
         // Parsear la fecha
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         fecha = dateFormat.parse("2025-04-23");
-
-        // Limpiar la base de datos
-        cleanDatabase();
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
-        // Limpiar la base de datos
-        cleanDatabase();
-
         // Cerrar PersistenceManagerFactory
         if (pmf != null && !pmf.isClosed()) {
             pmf.close();
-        }
-    }
-
-    private static void cleanDatabase() {
-        PersistenceManager pm = pmf.getPersistenceManager();
-        Transaction tx = pm.currentTransaction();
-        try {
-            tx.begin();
-            System.out.println("Cleaning database...");
-            pm.newQuery(Usuario.class).deletePersistentAll();
-            pm.newQuery(Pelicula.class).deletePersistentAll();
-            tx.commit();
-            System.out.println("Database cleaned successfully.");
-        } catch (Exception e) {
-            System.err.println("Error cleaning database: " + e.getMessage());
-            e.printStackTrace();
-            throw e;
-        } finally {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-            pm.close();
         }
     }
 
@@ -83,8 +55,19 @@ public class JDOTest {
         Transaction tx = pm.currentTransaction();
         try {
             tx.begin();
-            Usuario usuario = new Usuario("12345678A", "Test", "User", "test@example.com", "testuser", "password", "Calle 123", "987654321", TipoUsuario.CLIENTE);
-            pm.makePersistent(usuario);
+
+            // Check if the user already exists
+            Query<Usuario> query = pm.newQuery(Usuario.class, "dni == :dni");
+            @SuppressWarnings("unchecked")
+            List<Usuario> existingUsers = (List<Usuario>) query.execute("12345678A");
+            if (existingUsers.isEmpty()) {
+                System.out.println("Persisting test user...");
+                Usuario usuario = new Usuario("12345678A", "Test", "User", "test@example.com", "testuser", "password", "Calle 123", "987654321", TipoUsuario.CLIENTE);
+                pm.makePersistent(usuario);
+            } else {
+                System.out.println("Test user already exists, skipping insertion.");
+            }
+
             tx.commit();
             System.out.println("Usuario created successfully.");
 
@@ -92,7 +75,7 @@ public class JDOTest {
             pm = pmf.getPersistenceManager();
             tx = pm.currentTransaction();
             tx.begin();
-            Query<Usuario> query = pm.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
+            query = pm.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
             Map<String, Object> params = new HashMap<>();
             params.put("nombreUsuario", "testuser");
             query.setNamedParameters(params);
@@ -115,17 +98,25 @@ public class JDOTest {
         PersistenceManager pm = pmf.getPersistenceManager();
         Transaction tx = pm.currentTransaction();
         try {
-            // Create a user first
+            // Create a user if it doesn't exist
             tx.begin();
-            Usuario usuario = new Usuario("87654321B", "Read", "User", "read@example.com", "readuser", "password", "Calle 456", "123456789", TipoUsuario.ADMINISTRADOR);
-            pm.makePersistent(usuario);
+            Query<Usuario> query = pm.newQuery(Usuario.class, "dni == :dni");
+            @SuppressWarnings("unchecked")
+            List<Usuario> existingUsers = (List<Usuario>) query.execute("87654321B");
+            if (existingUsers.isEmpty()) {
+                System.out.println("Persisting test user...");
+                Usuario usuario = new Usuario("87654321B", "Read", "User", "read@example.com", "readuser", "password", "Calle 456", "123456789", TipoUsuario.ADMINISTRADOR);
+                pm.makePersistent(usuario);
+            } else {
+                System.out.println("Test user already exists, skipping insertion.");
+            }
             tx.commit();
 
             // Read the user
             pm = pmf.getPersistenceManager();
             tx = pm.currentTransaction();
             tx.begin();
-            Query<Usuario> query = pm.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
+            query = pm.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
             Map<String, Object> params = new HashMap<>();
             params.put("nombreUsuario", "readuser");
             query.setNamedParameters(params);
@@ -149,17 +140,25 @@ public class JDOTest {
         PersistenceManager pm = pmf.getPersistenceManager();
         Transaction tx = pm.currentTransaction();
         try {
-            // Create a user
+            // Create a user if it doesn't exist
             tx.begin();
-            Usuario usuario = new Usuario("11111111C", "Update", "User", "update@example.com", "updateuser", "password", "Calle 789", "111222333", TipoUsuario.CLIENTE);
-            pm.makePersistent(usuario);
+            Query<Usuario> query = pm.newQuery(Usuario.class, "dni == :dni");
+            @SuppressWarnings("unchecked")
+            List<Usuario> existingUsers = (List<Usuario>) query.execute("11111111C");
+            if (existingUsers.isEmpty()) {
+                System.out.println("Persisting test user...");
+                Usuario usuario = new Usuario("11111111C", "Update", "User", "update@example.com", "updateuser", "password", "Calle 789", "111222333", TipoUsuario.CLIENTE);
+                pm.makePersistent(usuario);
+            } else {
+                System.out.println("Test user already exists, skipping insertion.");
+            }
             tx.commit();
 
             // Update the user
             pm = pmf.getPersistenceManager();
             tx = pm.currentTransaction();
             tx.begin();
-            Query<Usuario> query = pm.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
+            query = pm.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
             Map<String, Object> params = new HashMap<>();
             params.put("nombreUsuario", "updateuser");
             query.setNamedParameters(params);
@@ -199,17 +198,25 @@ public class JDOTest {
         PersistenceManager pm = pmf.getPersistenceManager();
         Transaction tx = pm.currentTransaction();
         try {
-            // Create a user
+            // Create a user if it doesn't exist
             tx.begin();
-            Usuario usuario = new Usuario("22222222D", "Delete", "User", "delete@example.com", "deleteuser", "password", "Calle 101", "444555666", TipoUsuario.CLIENTE);
-            pm.makePersistent(usuario);
+            Query<Usuario> query = pm.newQuery(Usuario.class, "dni == :dni");
+            @SuppressWarnings("unchecked")
+            List<Usuario> existingUsers = (List<Usuario>) query.execute("22222222D");
+            if (existingUsers.isEmpty()) {
+                System.out.println("Persisting test user...");
+                Usuario usuario = new Usuario("22222222D", "Delete", "User", "delete@example.com", "deleteuser", "password", "Calle 101", "444555666", TipoUsuario.CLIENTE);
+                pm.makePersistent(usuario);
+            } else {
+                System.out.println("Test user already exists, skipping insertion.");
+            }
             tx.commit();
 
             // Delete the user
             pm = pmf.getPersistenceManager();
             tx = pm.currentTransaction();
             tx.begin();
-            Query<Usuario> query = pm.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
+            query = pm.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
             Map<String, Object> params = new HashMap<>();
             params.put("nombreUsuario", "deleteuser");
             query.setNamedParameters(params);
@@ -245,8 +252,19 @@ public class JDOTest {
         Transaction tx = pm.currentTransaction();
         try {
             tx.begin();
-            Pelicula pelicula = new Pelicula("Test Movie", "Drama", 120, fecha, "Test Director", "Test Synopsis", "18:00", null);
-            pm.makePersistent(pelicula);
+
+            // Check if the movie already exists
+            Query<Pelicula> query = pm.newQuery(Pelicula.class, "titulo == :titulo");
+            @SuppressWarnings("unchecked")
+            List<Pelicula> existingMovies = (List<Pelicula>) query.execute("Test Movie");
+            if (existingMovies.isEmpty()) {
+                System.out.println("Persisting test movie...");
+                Pelicula pelicula = new Pelicula("Test Movie", "Drama", 120, fecha, "Test Director", "Test Synopsis", "18:00", null);
+                pm.makePersistent(pelicula);
+            } else {
+                System.out.println("Test movie already exists, skipping insertion.");
+            }
+
             tx.commit();
             System.out.println("Pelicula created successfully.");
 
@@ -254,7 +272,7 @@ public class JDOTest {
             pm = pmf.getPersistenceManager();
             tx = pm.currentTransaction();
             tx.begin();
-            Query<Pelicula> query = pm.newQuery(Pelicula.class, "titulo == :titulo");
+            query = pm.newQuery(Pelicula.class, "titulo == :titulo");
             Map<String, Object> params = new HashMap<>();
             params.put("titulo", "Test Movie");
             query.setNamedParameters(params);
@@ -277,17 +295,25 @@ public class JDOTest {
         PersistenceManager pm = pmf.getPersistenceManager();
         Transaction tx = pm.currentTransaction();
         try {
-            // Create a movie
+            // Create a movie if it doesn't exist
             tx.begin();
-            Pelicula pelicula = new Pelicula("Read Movie", "Action", 110, fecha, "Read Director", "Read Synopsis", "20:00", null);
-            pm.makePersistent(pelicula);
+            Query<Pelicula> query = pm.newQuery(Pelicula.class, "titulo == :titulo");
+            @SuppressWarnings("unchecked")
+            List<Pelicula> existingMovies = (List<Pelicula>) query.execute("Read Movie");
+            if (existingMovies.isEmpty()) {
+                System.out.println("Persisting test movie...");
+                Pelicula pelicula = new Pelicula("Read Movie", "Action", 110, fecha, "Read Director", "Read Synopsis", "20:00", null);
+                pm.makePersistent(pelicula);
+            } else {
+                System.out.println("Test movie already exists, skipping insertion.");
+            }
             tx.commit();
 
             // Read the movie
             pm = pmf.getPersistenceManager();
             tx = pm.currentTransaction();
             tx.begin();
-            Query<Pelicula> query = pm.newQuery(Pelicula.class, "titulo == :titulo");
+            query = pm.newQuery(Pelicula.class, "titulo == :titulo");
             Map<String, Object> params = new HashMap<>();
             params.put("titulo", "Read Movie");
             query.setNamedParameters(params);
@@ -311,17 +337,25 @@ public class JDOTest {
         PersistenceManager pm = pmf.getPersistenceManager();
         Transaction tx = pm.currentTransaction();
         try {
-            // Create a movie
+            // Create a movie if it doesn't exist
             tx.begin();
-            Pelicula pelicula = new Pelicula("Update Movie", "Comedy", 100, fecha, "Update Director", "Update Synopsis", "22:00", null);
-            pm.makePersistent(pelicula);
+            Query<Pelicula> query = pm.newQuery(Pelicula.class, "titulo == :titulo");
+            @SuppressWarnings("unchecked")
+            List<Pelicula> existingMovies = (List<Pelicula>) query.execute("Update Movie");
+            if (existingMovies.isEmpty()) {
+                System.out.println("Persisting test movie...");
+                Pelicula pelicula = new Pelicula("Update Movie", "Comedy", 100, fecha, "Update Director", "Update Synopsis", "22:00", null);
+                pm.makePersistent(pelicula);
+            } else {
+                System.out.println("Test movie already exists, skipping insertion.");
+            }
             tx.commit();
 
             // Update the movie
             pm = pmf.getPersistenceManager();
             tx = pm.currentTransaction();
             tx.begin();
-            Query<Pelicula> query = pm.newQuery(Pelicula.class, "titulo == :titulo");
+            query = pm.newQuery(Pelicula.class, "titulo == :titulo");
             Map<String, Object> params = new HashMap<>();
             params.put("titulo", "Update Movie");
             query.setNamedParameters(params);
@@ -361,17 +395,25 @@ public class JDOTest {
         PersistenceManager pm = pmf.getPersistenceManager();
         Transaction tx = pm.currentTransaction();
         try {
-            // Create a movie
+            // Create a movie if it doesn't exist
             tx.begin();
-            Pelicula pelicula = new Pelicula("Delete Movie", "Horror", 90, fecha, "Delete Director", "Delete Synopsis", "23:00", null);
-            pm.makePersistent(pelicula);
+            Query<Pelicula> query = pm.newQuery(Pelicula.class, "titulo == :titulo");
+            @SuppressWarnings("unchecked")
+            List<Pelicula> existingMovies = (List<Pelicula>) query.execute("Delete Movie");
+            if (existingMovies.isEmpty()) {
+                System.out.println("Persisting test movie...");
+                Pelicula pelicula = new Pelicula("Delete Movie", "Horror", 90, fecha, "Delete Director", "Delete Synopsis", "23:00", null);
+                pm.makePersistent(pelicula);
+            } else {
+                System.out.println("Test movie already exists, skipping insertion.");
+            }
             tx.commit();
 
             // Delete the movie
             pm = pmf.getPersistenceManager();
             tx = pm.currentTransaction();
             tx.begin();
-            Query<Pelicula> query = pm.newQuery(Pelicula.class, "titulo == :titulo");
+            query = pm.newQuery(Pelicula.class, "titulo == :titulo");
             Map<String, Object> params = new HashMap<>();
             params.put("titulo", "Delete Movie");
             query.setNamedParameters(params);
