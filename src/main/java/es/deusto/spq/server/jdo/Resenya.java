@@ -19,6 +19,19 @@ public class Resenya {
     @Persistent(defaultFetchGroup = "true")
     private Pelicula pelicula;
 
+
+    // Constructor vacío
+    public Resenya() {
+    }
+
+    // Constructor con parámetros
+    public Resenya(String comentario, int puntuacion, Usuario usuario, Pelicula pelicula) {
+        this.comentario = comentario;
+        this.puntuacion = puntuacion;
+        this.usuario = usuario;
+        this.pelicula = pelicula;
+    }
+
     // Getters y Setters
     public long getId() {
         return id;

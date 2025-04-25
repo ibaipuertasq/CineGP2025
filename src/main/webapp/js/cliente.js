@@ -88,14 +88,6 @@ async function cargarDatosUsuario() {
         
         const usuario = await response.json();
         
-        // Personalizar la interfaz según el tipo de usuario
-        if (usuario.tipoUsuario === 'ADMINISTRADOR') {
-            // Mostrar opciones de administrador
-            agregarOpcionesAdministrador();
-            document.getElementById('bienvenidaUsuario').textContent = `¡Bienvenido, Administrador ${usuario.nombre}!`;
-        } else {
-            document.getElementById('bienvenidaUsuario').textContent = `¡Bienvenido, ${usuario.nombre}!`;
-        }
         
         // Cargar datos adicionales: entradas y recomendaciones personalizadas
         cargarEntradasUsuario();

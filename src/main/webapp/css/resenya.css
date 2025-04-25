@@ -1,0 +1,219 @@
+/* Estilos para la sección de reseñas */
+.resenyas-container {
+    margin: 20px 0;
+    padding: 0;
+}
+
+.resenyas-filtro {
+    margin-bottom: 20px;
+}
+
+.filtro-select {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 16px;
+    width: 100%;
+    max-width: 400px;
+    margin-top: 8px;
+}
+
+.resenya-item {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.resenya-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.resenya-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.resenya-header h4 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.estrellas {
+    display: flex;
+    align-items: center;
+}
+
+.estrella-llena {
+    color: #ffc107;
+}
+
+.estrella-vacia {
+    color: #e0e0e0;
+}
+
+.resenya-comentario {
+    margin: 8px 0;
+    line-height: 1.5;
+    color: #555;
+}
+
+.resenya-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.btn-editar, .btn-eliminar {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.btn-editar {
+    color: #2196F3;
+}
+
+.btn-eliminar {
+    color: #f44336;
+}
+
+.btn-editar:hover {
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+.btn-eliminar:hover {
+    background-color: rgba(244, 67, 54, 0.1);
+}
+
+.formulario-resenya {
+    margin-top: 24px;
+    padding: 16px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
+
+.formulario-resenya h4 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: #333;
+}
+
+.rating {
+    margin-bottom: 16px;
+}
+
+.estrellas-input {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.estrellas-input input {
+    display: none;
+}
+
+.estrellas-input label {
+    cursor: pointer;
+    color: #e0e0e0;
+    font-size: 24px;
+    padding: 0 2px;
+    transition: all 0.2s;
+}
+
+.estrellas-input:hover label {
+    color: #ffc107;
+}
+
+.estrellas-input label:hover ~ label {
+    color: #e0e0e0;
+}
+
+.estrellas-input input:checked ~ label {
+    color: #ffc107;
+}
+
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 16px;
+    margin-bottom: 16px;
+}
+
+.alerta-exito, .alerta-error {
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+.alerta-exito {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border-left: 4px solid #2e7d32;
+}
+
+.alerta-error {
+    background-color: #ffebee;
+    color: #c62828;
+    border-left: 4px solid #c62828;
+}
+
+.no-resenyas {
+    text-align: center;
+    color: #757575;
+    font-style: italic;
+    padding: 20px;
+}
+
+.select-pelicula {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 16px;
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+/* Estilo para botón secundario */
+.boton-secundario {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+.boton-secundario:hover {
+    background-color: #d0d0d0;
+}
+
+/* Media queries para responsividad */
+@media (max-width: 768px) {
+    .resenya-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .estrellas {
+        margin-top: 8px;
+    }
+    
+    .btn-editar, .btn-eliminar {
+        padding: 8px;
+    }
+}

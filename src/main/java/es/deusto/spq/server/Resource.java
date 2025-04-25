@@ -64,6 +64,54 @@ public class Resource {
 		this.tx = pm.currentTransaction();
 	}
 
+
+	
+	/**
+     * Retrieves a specific movie by its ID.
+     * 
+     * @param id The ID of the movie to retrieve.
+     * @return A Response containing the movie if found, or a NOT_FOUND status if not.
+     */
+    @GET
+    @Path("/getPelicula/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getPelicula(@PathParam("id") long id) {
+        PersistenceManager pmTemp = null;
+        Transaction txTemp = null;
+
+        try {
+            PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+            pmTemp = pmf.getPersistenceManager();
+            txTemp = pmTemp.currentTransaction();
+            txTemp.begin();
+
+            Pelicula pelicula = null;
+            try {
+                pelicula = pmTemp.getObjectById(Pelicula.class, id);
+            } catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+                logger.info("Película no encontrada con ID: {}", id);
+                txTemp.rollback();
+                return Response.status(Response.Status.NOT_FOUND).entity("Película no encontrada").build();
+            }
+
+            logger.info("Película encontrada: {}", pelicula);
+            txTemp.commit();
+            return Response.ok(pelicula).build();
+
+        } catch (Exception e) {
+            logger.error("Error al obtener película: {}", e.getMessage());
+            if (txTemp != null && txTemp.isActive()) {
+                txTemp.rollback();
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener película").build();
+        } finally {
+            if (pmTemp != null && !pmTemp.isClosed()) {
+                pmTemp.close();
+            }
+        }
+    }
+
+
 	/**
 	 * Logs in a user and returns a response.
 	 *
