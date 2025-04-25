@@ -2,7 +2,6 @@ window.onload = function() {
     listarPeliculas();
 }
 
-
 let listarPeliculas = async () => {
     const peticion = await fetch("http://localhost:8080/rest/resource/getPeliculas",
     {
@@ -27,7 +26,7 @@ let listarPeliculas = async () => {
                 <td>${pelicula.sala.numero}</td>
                 <td>${pelicula.horario}</td>
                 <td>
-                    <i class="material-icons button edit">edit</i>
+                    <i onClick="editarPelicula(${pelicula.id})" class="material-icons button edit">edit</i>
                     <i onClick="eliminarPelicula(${pelicula.id})"class="material-icons button delete">delete</i>
                 </td>
             <tr>`
@@ -55,4 +54,13 @@ let eliminarPelicula = async (id ) => {
     });
 
     listarPeliculas();
+}
+
+let editarPelicula = (id) => {
+    // Obtener el parámetro nombreUsuario de la URL actual
+    const urlParams = new URLSearchParams(window.location.search);
+    const nombreUsuario = urlParams.get('nombreUsuario');
+    
+    // Redireccionar a la página de edición con los parámetros necesarios
+    window.location.href = `../html/pelicula/editarPelicula.html?id=${id}&nombreUsuario=${nombreUsuario}`;
 }

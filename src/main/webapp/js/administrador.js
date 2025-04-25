@@ -32,7 +32,6 @@ document.getElementById('botonEntradas').addEventListener('click', (e) => {
     }
 });
 
-// Añadir al archivo cliente.js existente
 document.getElementById('botonNuevaPelicula').addEventListener('click', (e) => {
     e.preventDefault();
     if (userId) {

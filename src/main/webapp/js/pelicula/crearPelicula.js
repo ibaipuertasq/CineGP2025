@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Actualizar el link para volver a la cartelera
     const linkVolver = document.getElementById('volverCartelera');
     if (linkVolver && userId) {
-        linkVolver.href = `../cliente.html?nombreUsuario=${userId}`;
+        linkVolver.href = `../administrador.html?nombreUsuario=${userId}`;
     }
 
     // Mostrar el nombre de usuario en el dropdown
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Event listener para el botón de cancelar
     document.getElementById('botonCancelar').addEventListener('click', function() {
-        window.location.href = `../cliente.html?nombreUsuario=${userId}`;
+        window.location.href = `../administrador.html?nombreUsuario=${userId}`;
     });
 
     // Event listener para editar usuario
@@ -182,7 +182,7 @@ async function crearPelicula() {
             document.getElementById('formularioPelicula').reset();
             // Redireccionar después de 2 segundos
             setTimeout(() => {
-                window.location.href = `../cliente.html?nombreUsuario=${userId}`;
+                window.location.href = `../administrador.html?nombreUsuario=${userId}`;
             }, 2000);
         } else {
             const errorText = await response.text();

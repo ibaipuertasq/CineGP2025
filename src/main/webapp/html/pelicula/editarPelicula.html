@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineGP - Editar Película</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="../../css/formulario.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+</head>
+
+<body>
+    <header>
+        <div class="navbar">
+            <div class="logo">
+                <h1>CineGP</h1>
+            </div>
+            <nav class="nav-links">
+                <a href="../../html/administrador.html" id="volverAdmin">Volver</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="form-section">
+            <div class="form-container">
+                <h2>Editar Película</h2>
+                <form id="formEditarPelicula">
+                    <input type="hidden" id="peliculaId">
+
+                    <div class="form-group">
+                        <label for="titulo">Título:</label>
+                        <input type="text" id="titulo" name="titulo" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="genero">Género:</label>
+                        <input type="text" id="genero" name="genero" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duracion">Duración (minutos):</label>
+                        <input type="number" id="duracion" name="duracion" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fechaEstreno">Fecha de Estreno:</label>
+                        <input type="date" id="fechaEstreno" name="fechaEstreno" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="director">Director:</label>
+                        <input type="text" id="director" name="director" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sinopsis">Sinopsis:</label>
+                        <textarea id="sinopsis" name="sinopsis" rows="4" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="horario">Horario:</label>
+                        <input type="text" id="horario" name="horario" placeholder="Ej: 16:00, 18:30, 21:00" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sala">Sala:</label>
+                        <select id="sala" name="sala" required>
+                            <!-- Las opciones se cargarán dinámicamente -->
+                        </select>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn-primary">Guardar Cambios</button>
+                        <button type="button" id="btnCancelar" class="btn-secondary">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <p>© 2025 CineGP - Tu Cine de Confianza</p>
+        </div>
+    </footer>
+
+    <script src="../../js/pelicula/editarPelicula.js"></script>
+</body>
+
+</html>
