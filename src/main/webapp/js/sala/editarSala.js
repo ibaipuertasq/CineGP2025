@@ -4,6 +4,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filasAsientos = document.getElementById('filasAsientos');
     let asientos = [];
 
+    const cargarSala = async () => {
+        try {
+            const response = await fetch(`/rest/resource/getSala/${salaId}`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+    
+            if (response.ok) {
+                const sala = await response.json();
+                document.getElementById('capacidadSala').value = sala.capacidad; // Mostrar la capacidad actual
+            } else {
+                console.error('Error al cargar la sala:', await response.text());
+            }
+        } catch (error) {
+            console.error('Error al conectar con el servidor:', error);
+        }
+    };
+
     // Cargar los asientos de la sala
     const cargarAsientos = async () => {
         try {
@@ -50,17 +68,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Guardar los cambios en los asientos
     const guardarCambios = async () => {
         try {
-            const response = await fetch(`/rest/resource/actualizarAsientos/${salaId}`, {
+            const nuevaCapacidad = parseInt(document.getElementById('capacidadSala').value, 10);
+    
+            const response = await fetch(`/rest/resource/actualizarSala/${salaId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(asientos)
+                body: JSON.stringify({ capacidad: nuevaCapacidad, asientos })
             });
-
+    
             if (response.ok) {
                 alert('Cambios guardados correctamente.');
-                const urlParams = new URLSearchParams(window.location.search);
-                const nombreUsuario = urlParams.get('nombreUsuario'); // Obtén el nombre de usuario de la URL
-                window.location.href = `../administrador.html?nombreUsuario=${nombreUsuario}`; // Redirige con el nombre de usuario
+                const nombreUsuario = new URLSearchParams(window.location.search).get('nombreUsuario');
+                window.location.href = `../administrador.html?nombreUsuario=${nombreUsuario}`;
             } else {
                 console.error('Error al guardar los cambios:', await response.text());
             }
@@ -72,5 +91,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('btnGuardarCambios').addEventListener('click', guardarCambios);
 
     // Cargar los asientos al cargar la página
+    cargarSala();
     cargarAsientos();
 });

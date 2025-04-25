@@ -1699,4 +1699,63 @@ public Response getEntradas(@PathParam("nombreUsuario") String nombreUsuario) {
 		}
 	}
 
+	@PUT
+	@Path("/actualizarSala/{salaId}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response actualizarSala(@PathParam("salaId") long salaId, Map<String, Object> datos) {
+		try (PersistenceManager pm = JDOHelper.getPersistenceManagerFactory("datanucleus.properties").getPersistenceManager()) {
+			Sala sala = pm.getObjectById(Sala.class, salaId);
+			if (sala == null) {
+				return Response.status(Response.Status.NOT_FOUND).entity("Sala no encontrada").build();
+			}
+	
+			int nuevaCapacidad = (int) datos.get("capacidad");
+			List<Asiento> asientosActuales = new ArrayList<>();
+			asientosActuales.addAll(sala.getAsientos());
+	
+			// Si la nueva capacidad es mayor, agregar nuevos asientos
+			if (nuevaCapacidad > asientosActuales.size()) {
+				for (int i = asientosActuales.size() + 1; i <= nuevaCapacidad; i++) {
+					TipoAsiento tipo = (i % 10 == 0) ? TipoAsiento.VIP : TipoAsiento.NORMAL;
+					Asiento nuevoAsiento = new Asiento(0, i, tipo, false); // Asientos inicialmente libres
+					asientosActuales.add(nuevoAsiento);
+				}
+			} 
+			// Si la nueva capacidad es menor, eliminar asientos desocupados
+			else if (nuevaCapacidad < asientosActuales.size()) {
+				// Filtrar los asientos desocupados
+				List<Asiento> asientosDesocupados = new ArrayList<>();
+				for (Asiento asiento : asientosActuales) {
+					if (!asiento.isOcupado()) {
+						asientosDesocupados.add(asiento);
+					}
+				}
+	
+				// Verificar si hay suficientes asientos desocupados para eliminar
+				int asientosAEliminar = asientosActuales.size() - nuevaCapacidad;
+				if (asientosDesocupados.size() < asientosAEliminar) {
+					return Response.status(Response.Status.BAD_REQUEST)
+							.entity("No se pueden reducir los asientos porque algunos están ocupados").build();
+				}
+	
+				// Eliminar los asientos desocupados necesarios
+				for (int i = 0; i < asientosAEliminar; i++) {
+					Asiento asientoAEliminar = asientosDesocupados.get(i);
+					asientosActuales.remove(asientoAEliminar);
+					pm.deletePersistent(asientoAEliminar); // Eliminar el asiento de la base de datos
+				}
+			}
+	
+			// Actualizar la capacidad de la sala
+			sala.setCapacidad(nuevaCapacidad);
+			sala.setAsientos(asientosActuales);
+	
+			return Response.ok("Sala actualizada correctamente").build();
+		} catch (Exception e) {
+			logger.error("Error al actualizar la sala: {}", e.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al actualizar la sala").build();
+		}
+	}
+
 }
