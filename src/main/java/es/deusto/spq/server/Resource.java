@@ -1412,4 +1412,34 @@ public Response getEntradas(@PathParam("nombreUsuario") String nombreUsuario) {
 		}
 	}
 
+
+	@POST
+	@Path("/agregarSala")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response agregarSala(Sala nuevaSala) {
+		try (PersistenceManager pm = JDOHelper.getPersistenceManagerFactory("datanucleus.properties").getPersistenceManager()) {
+			// Crear una lista para los asientos
+			List<Asiento> asientos = new ArrayList<>();
+
+			// Crear los asientos asociados
+			for (int i = 1; i <= nuevaSala.getCapacidad(); i++) {
+				TipoAsiento tipo = (i % 10 == 0) ? TipoAsiento.VIP : TipoAsiento.NORMAL; // Ejemplo: cada 10 asientos es VIP
+				Asiento asiento = new Asiento(0, i, tipo, false); // Asientos inicialmente libres
+				asientos.add(asiento); // Agregar el asiento a la lista
+			}
+
+			// Asociar los asientos a la sala
+			nuevaSala.setAsientos(asientos);
+
+			// Persistir la sala (junto con los asientos)
+			pm.makePersistent(nuevaSala);
+
+			return Response.status(Response.Status.CREATED).entity("Sala y asientos creados correctamente").build();
+		} catch (Exception e) {
+			logger.error("Error al agregar la sala: {}", e.getMessage());
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al agregar la sala").build();
+		}
+	}
+
 }

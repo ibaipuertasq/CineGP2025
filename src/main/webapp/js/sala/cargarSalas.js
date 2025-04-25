@@ -74,6 +74,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = `sala/editarSala.html?nombreUsuario=${userId}&salaId=${salaId}`;
     };
 
+    document.getElementById('btnAgregarSala').addEventListener('click', () => {
+        const userId = new URLSearchParams(window.location.search).get('nombreUsuario'); // Obtén el nombreUsuario de la URL actual
+        window.location.href = `sala/agregarSala.html?nombreUsuario=${userId}`;
+    });
+
     // Cargar las salas al cargar la página
     cargarSalas();
 });

@@ -3,6 +3,9 @@ package org.datanucleus;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.jdo.JDOHelper;
 import javax.jdo.JDOObjectNotFoundException;
 import javax.jdo.PersistenceManager;
@@ -21,11 +24,13 @@ import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
 import es.deusto.spq.server.Resource;
+import es.deusto.spq.server.jdo.Pelicula;
+import es.deusto.spq.server.jdo.Sala;
 import es.deusto.spq.server.jdo.TipoUsuario;
 import es.deusto.spq.server.jdo.Usuario;
 
 /**
- * Unit tests for the Resource class, focusing on user-related methods.
+ * Unit tests for the Resource class, focusing on user-related methods and additional endpoints.
  */
 public class ResourceTest {
 
@@ -44,13 +49,13 @@ public class ResourceTest {
 
     @BeforeClass
     public static void setUpClass() {
-        // Inicializar la simulación de JDOHelper a nivel de clase
+        // Initialize the mock for JDOHelper at the class level
         jdoHelper = mockStatic(JDOHelper.class);
     }
 
     @AfterClass
     public static void tearDownClass() {
-        // Cerrar la simulación de JDOHelper después de todas las pruebas
+        // Close the JDOHelper mock after all tests
         if (jdoHelper != null) {
             jdoHelper.close();
         }
@@ -60,7 +65,7 @@ public class ResourceTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Configurar la simulación de JDOHelper para devolver el pmf simulado
+        // Configure the mock for JDOHelper to return the mocked pmf
         jdoHelper.when(() -> JDOHelper.getPersistenceManagerFactory("datanucleus.properties")).thenReturn(pmf);
         when(pmf.getPersistenceManager()).thenReturn(persistenceManager);
         when(persistenceManager.currentTransaction()).thenReturn(transaction);
@@ -355,5 +360,148 @@ public class ResourceTest {
         // Verify response
         assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
         assertEquals("User not found", response.getEntity());
+    }
+
+    @Test
+    public void testGetPeliculasSuccess() {
+        // Prepare test data
+        List<Pelicula> peliculas = new ArrayList<>();
+        Pelicula pelicula = new Pelicula("Test Movie", "Drama", 120, null, "Test Director", "Test Synopsis", "18:00", null);
+        peliculas.add(pelicula);
+        @SuppressWarnings("unchecked")
+        Query<Pelicula> query = mock(Query.class);
+        when(persistenceManager.newQuery(Pelicula.class)).thenReturn(query);
+        when(query.execute()).thenReturn(peliculas);
+        when(transaction.isActive()).thenReturn(true);
+        doNothing().when(transaction).begin();
+        doNothing().when(transaction).commit();
+        doNothing().when(persistenceManager).close();
+
+        // Call the method
+        Response response = resource.getPeliculas();
+
+        // Verify response
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals(peliculas, response.getEntity());
+    }
+
+    @Test
+    public void testGetPeliculasNotFound() {
+        // Prepare test data
+        List<Pelicula> peliculas = new ArrayList<>();
+        @SuppressWarnings("unchecked")
+        Query<Pelicula> query = mock(Query.class);
+        when(persistenceManager.newQuery(Pelicula.class)).thenReturn(query);
+        when(query.execute()).thenReturn(peliculas);
+        when(transaction.isActive()).thenReturn(true);
+        doNothing().when(transaction).begin();
+        doNothing().when(transaction).rollback();
+        doNothing().when(persistenceManager).close();
+
+        // Call the method
+        Response response = resource.getPeliculas();
+
+        // Verify response
+        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
+        assertEquals("No se encontraron películas", response.getEntity());
+    }
+
+    @Test
+    public void testCrearPeliculaSuccess() {
+        // Prepare test data
+        Sala sala = new Sala(1, 1, 50, new ArrayList<>(), true);
+        Pelicula pelicula = new Pelicula("New Movie", "Action", 110, null, "New Director", "New Synopsis", "20:00", sala);
+        @SuppressWarnings("unchecked")
+        Query<Pelicula> query = mock(Query.class);
+        when(persistenceManager.newQuery(Pelicula.class, "titulo == :titulo")).thenReturn(query);
+        doNothing().when(query).setUnique(true);
+        when(query.execute("New Movie")).thenReturn(null); // Movie does not exist
+        when(persistenceManager.getObjectById(Sala.class, 1)).thenReturn(sala);
+        when(transaction.isActive()).thenReturn(true);
+        doNothing().when(transaction).begin();
+        doNothing().when(transaction).commit();
+        doNothing().when(persistenceManager).close();
+
+        // Call the method
+        Response response = resource.crearPelicula(pelicula);
+
+        // Verify persistence
+        ArgumentCaptor<Pelicula> peliculaCaptor = ArgumentCaptor.forClass(Pelicula.class);
+        verify(persistenceManager).makePersistent(peliculaCaptor.capture());
+        assertEquals("New Movie", peliculaCaptor.getValue().getTitulo());
+        assertEquals("Action", peliculaCaptor.getValue().getGenero());
+
+        // Verify response
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    }
+
+    @Test
+    public void testCrearPeliculaAlreadyExists() {
+        // Prepare test data
+        Sala sala = new Sala(1, 1, 50, new ArrayList<>(), true);
+        Pelicula pelicula = new Pelicula("New Movie", "Action", 110, null, "New Director", "New Synopsis", "20:00", sala);
+        @SuppressWarnings("unchecked")
+        Query<Pelicula> query = mock(Query.class);
+        when(persistenceManager.newQuery(Pelicula.class, "titulo == :titulo")).thenReturn(query);
+        doNothing().when(query).setUnique(true);
+        when(query.execute("New Movie")).thenReturn(pelicula); // Movie already exists
+        when(transaction.isActive()).thenReturn(true);
+        doNothing().when(transaction).begin();
+        doNothing().when(transaction).rollback();
+        doNothing().when(persistenceManager).close();
+
+        // Call the method
+        Response response = resource.crearPelicula(pelicula);
+
+        // Verify no persistence
+        verify(persistenceManager, never()).makePersistent(any(Pelicula.class));
+
+        // Verify response
+        assertEquals(Response.Status.CONFLICT.getStatusCode(), response.getStatus());
+        assertEquals("Ya existe una película con ese título", response.getEntity());
+    }
+
+    @Test
+    public void testGetSalasSuccess() {
+        // Prepare test data
+        List<Sala> salas = new ArrayList<>();
+        Sala sala = new Sala(1, 1, 50, new ArrayList<>(), true);
+        salas.add(sala);
+        @SuppressWarnings("unchecked")
+        Query<Sala> query = mock(Query.class);
+        when(persistenceManager.newQuery(Sala.class)).thenReturn(query);
+        when(query.execute()).thenReturn(salas);
+        when(transaction.isActive()).thenReturn(true);
+        doNothing().when(transaction).begin();
+        doNothing().when(transaction).commit();
+        doNothing().when(persistenceManager).close();
+
+        // Call the method
+        Response response = resource.getSalas();
+
+        // Verify response
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals(salas, response.getEntity());
+    }
+
+    @Test
+    public void testGetSalasNotFound() {
+        // Prepare test data
+        List<Sala> salas = new ArrayList<>();
+        @SuppressWarnings("unchecked")
+        Query<Sala> query = mock(Query.class);
+        when(persistenceManager.newQuery(Sala.class)).thenReturn(query);
+        when(query.execute()).thenReturn(salas);
+        when(transaction.isActive()).thenReturn(true);
+        doNothing().when(transaction).begin();
+        doNothing().when(transaction).rollback();
+        doNothing().when(persistenceManager).close();
+
+        // Call the method
+        Response response = resource.getSalas();
+
+        // Verify response
+        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
+        assertEquals("No se encontraron salas", response.getEntity());
     }
 }

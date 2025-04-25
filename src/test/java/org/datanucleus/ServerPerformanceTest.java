@@ -3,6 +3,7 @@ package org.datanucleus;
 import static org.junit.Assert.assertEquals;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -33,6 +34,9 @@ import com.github.noconnor.junitperf.reporting.providers.HtmlReportGenerator;
 
 import es.deusto.spq.server.Main;
 import es.deusto.spq.server.jdo.Pelicula;
+import es.deusto.spq.server.jdo.Sala;
+import es.deusto.spq.server.jdo.Asiento;
+import es.deusto.spq.server.jdo.TipoAsiento;
 import es.deusto.spq.server.jdo.TipoUsuario;
 import es.deusto.spq.server.jdo.Usuario;
 
@@ -50,6 +54,7 @@ public class ServerPerformanceTest {
 
     private static Date fecha;
     private static Pelicula pelicula;
+    private static Sala sala;
     private static Usuario usuario;
 
     @Rule
@@ -62,20 +67,20 @@ public class ServerPerformanceTest {
             throw new IllegalStateException("PersistenceManagerFactory is null. Check datanucleus.properties.");
         }
 
-        // Parsear la fecha
+        // Parse the date
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         fecha = dateFormat.parse("2025-04-23");
 
-        // Iniciar el servidor
+        // Start the server
         server = Main.startServer();
 
-        // Preparar datos de prueba en la base de datos
+        // Prepare test data in the database
         PersistenceManager pm = pmf.getPersistenceManager();
         Transaction tx = pm.currentTransaction();
         try {
             tx.begin();
 
-            // Verificar si el usuario ya existe
+            // Check if the user already exists
             System.out.println("Checking for existing test user...");
             Query<Usuario> userQuery = pm.newQuery(Usuario.class, "dni == :dni");
             @SuppressWarnings("unchecked")
@@ -89,14 +94,30 @@ public class ServerPerformanceTest {
                 usuario = existingUsers.get(0);
             }
 
-            // Verificar si la película ya existe
+            // Create seats for the sala
+            List<Asiento> asientos = new ArrayList<>();
+            Asiento asiento1 = new Asiento(0, 1, TipoAsiento.NORMAL, false);
+            pm.makePersistent(asiento1);
+            asientos.add(asiento1);
+            Asiento asiento2 = new Asiento(0, 2, TipoAsiento.VIP, false);
+            pm.makePersistent(asiento2);
+            asientos.add(asiento2);
+            Asiento asiento3 = new Asiento(0, 3, TipoAsiento.DISCAPACITADOS, false);
+            pm.makePersistent(asiento3);
+            asientos.add(asiento3);
+
+            // Create a sala (without associating it with a Cine)
+            sala = new Sala(0, 5, 3, asientos, true);
+            pm.makePersistent(sala);
+
+            // Check if the movie already exists
             System.out.println("Checking for existing test movie...");
             Query<Pelicula> movieQuery = pm.newQuery(Pelicula.class, "titulo == :titulo");
             @SuppressWarnings("unchecked")
             List<Pelicula> existingMovies = (List<Pelicula>) movieQuery.execute("Test Movie");
             if (existingMovies.isEmpty()) {
                 System.out.println("Persisting test movie...");
-                pelicula = new Pelicula("Test Movie", "Drama", 120, fecha, "Test Director", "Test Synopsis", "18:00", null);
+                pelicula = new Pelicula("Test Movie", "Drama", 120, fecha, "Test Director", "Test Synopsis", "18:00, 20:00", sala);
                 pm.makePersistent(pelicula);
             } else {
                 System.out.println("Test movie already exists, skipping insertion.");
@@ -125,7 +146,7 @@ public class ServerPerformanceTest {
 
     @AfterClass
     public static void tearDownServer() throws Exception {
-        // Apagar el servidor
+        // Shut down the server
         if (server != null) {
             server.shutdown();
             System.out.println("Server shut down.");
@@ -157,4 +178,84 @@ public class ServerPerformanceTest {
         assertEquals(Family.SUCCESSFUL, response.getStatusInfo().getFamily());
         System.out.println("testGetPeliculas passed.");
     }
+
+    @Test
+    @JUnitPerfTest(threads = 5, durationMs = 1000)
+    public void testCrearPelicula() throws Exception {
+        System.out.println("Running testCrearPelicula...");
+
+        // Create seats for a new sala
+        PersistenceManager pm = pmf.getPersistenceManager();
+        Transaction tx = pm.currentTransaction();
+        try {
+            tx.begin();
+            List<Asiento> asientos = new ArrayList<>();
+            Asiento asiento1 = new Asiento(0, 4, TipoAsiento.NORMAL, false);
+            pm.makePersistent(asiento1);
+            asientos.add(asiento1);
+            Asiento asiento2 = new Asiento(0, 5, TipoAsiento.VIP, false);
+            pm.makePersistent(asiento2);
+            asientos.add(asiento2);
+            Asiento asiento3 = new Asiento(0, 6, TipoAsiento.DISCAPACITADOS, false);
+            pm.makePersistent(asiento3);
+            asientos.add(asiento3);
+
+            // Create a new sala (without associating it with a Cine)
+            Sala nuevaSala = new Sala(0, 7, 3, asientos, true);
+            pm.makePersistent(nuevaSala);
+
+            // Create a new movie
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date nuevaFecha = dateFormat.parse("2025-05-01");
+            Pelicula nuevaPelicula = new Pelicula("New Movie", "Action", 110, nuevaFecha, "New Director", "New Synopsis", "20:00", nuevaSala);
+
+            tx.commit();
+
+            // Send the request to the endpoint
+            Response response = target.path("crearPelicula")
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(nuevaPelicula, MediaType.APPLICATION_JSON));
+
+            assertEquals(Family.SUCCESSFUL, response.getStatusInfo().getFamily());
+            System.out.println("testCrearPelicula passed.");
+        } finally {
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            pm.close();
+        }
+    }
+
+    // Commented out due to dependency on Cine, which causes SALAS_ID_OWN error
+    /*
+    @Test
+    @JUnitPerfTest(threads = 5, durationMs = 1000)
+    public void testComprarEntradas() {
+        System.out.println("Running testComprarEntradas...");
+
+        // Prepare data for the purchase
+        Resource.CompraEntradaDTO compraDTO = new Resource.CompraEntradaDTO();
+        compraDTO.setNombreUsuario("testuser");
+        compraDTO.setCineId(cine.getId()); // This requires a Cine, causing the error
+        compraDTO.setPeliculaId(pelicula.getId());
+        compraDTO.setHorario("18:00");
+        List<Resource.AsientoDTO> asientosDTO = new ArrayList<>();
+        Resource.AsientoDTO asientoDTO = new Resource.AsientoDTO();
+        asientoDTO.setNumero(1);
+        asientoDTO.setTipo(TipoAsiento.NORMAL);
+        asientoDTO.setPrecio(10);
+        asientosDTO.add(asientoDTO);
+        compraDTO.setAsientos(asientosDTO);
+        compraDTO.setMetodoPago("Tarjeta");
+        compraDTO.setPrecioTotal(10);
+
+        // Send the request to the endpoint
+        Response response = target.path("comprarEntradas")
+            .request(MediaType.APPLICATION_JSON)
+            .post(Entity.entity(compraDTO, MediaType.APPLICATION_JSON));
+
+        assertEquals(Family.SUCCESSFUL, response.getStatusInfo().getFamily());
+        System.out.println("testComprarEntradas passed.");
+    }
+    */
 }
