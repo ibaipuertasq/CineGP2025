@@ -318,6 +318,12 @@ function inicializarFormularioResenyas(peliculaId) {
 
 // Evento para enviar una nueva reseña
 document.addEventListener('DOMContentLoaded', function() {
+    //const contenedor = document.getElementById('resenyas-container');
+    const peliculaSeleccionada = document.getElementById('peliculaSelect');
+    peliculaSeleccionada.addEventListener('change', function() {
+        cargarYMostrarResenyas(peliculaSeleccionada.value);
+    });
+
     const btnEnviarResenya = document.getElementById('btnEnviarResenya');
     if (btnEnviarResenya) {
         btnEnviarResenya.addEventListener('click', function() {

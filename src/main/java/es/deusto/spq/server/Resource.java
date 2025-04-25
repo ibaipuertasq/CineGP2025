@@ -65,6 +65,7 @@ public class Resource {
 		this.tx = pm.currentTransaction();
 	}
 
+	@SuppressWarnings("unchecked")
 	@GET
 	@Path("/getResenyas/{peliculaId}")
 	public Response getResenyas(@PathParam("peliculaId") long peliculaId) {
@@ -115,6 +116,7 @@ public class Resource {
 			txTemp.begin();
 
 			Query<Resenya> query = pmTemp.newQuery(Resenya.class);
+			@SuppressWarnings("unchecked")
 			List<Resenya> resenyas = (List<Resenya>) query.execute();
 
 			if (resenyas != null && !resenyas.isEmpty()) {
@@ -215,17 +217,12 @@ public class Resource {
 				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al buscar usuario").build();
 			}
 
-			if (usuario == null) {
-				logger.info("Usuario no encontrado con nombre de usuario: {}", resenya.getUsuario().getNombreUsuario());
-				txTemp.rollback();
-				return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
-			}
 
 			// Asignar la película y el usuario a la reseña
 			resenya.setPelicula(pelicula);
 			resenya.setUsuario(usuario);
 			pmTemp.makePersistent(resenya);
-			logger.info("Reseña creada: {}", resenya);
+			logger.info("Reseña creada: {}", resenya.getComentario(), resenya.getPuntuacion(), resenya.getPelicula().getTitulo(), resenya.getUsuario().getNombreUsuario());
 
 			txTemp.commit();
 			return Response.ok(resenya).build();
