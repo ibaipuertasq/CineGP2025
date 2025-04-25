@@ -33,6 +33,7 @@ import es.deusto.spq.server.jdo.Asiento;
 import es.deusto.spq.server.jdo.Cine;
 import es.deusto.spq.server.jdo.Entrada;
 import es.deusto.spq.server.jdo.Pelicula;
+import es.deusto.spq.server.jdo.Resenya;
 import es.deusto.spq.server.jdo.Sala;
 import es.deusto.spq.server.jdo.TipoAsiento;
 import es.deusto.spq.server.jdo.TipoUsuario;
@@ -64,6 +65,262 @@ public class Resource {
 		this.tx = pm.currentTransaction();
 	}
 
+	@GET
+	@Path("/getResenyas/{peliculaId}")
+	public Response getResenyas(@PathParam("peliculaId") long peliculaId) {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+
+			Query<Resenya> query = pmTemp.newQuery(Resenya.class, "pelicula.id == :peliculaId");
+			List<Resenya> resenyas = (List<Resenya>) query.execute(peliculaId);
+
+			if (resenyas != null && !resenyas.isEmpty()) {
+				logger.info("Se encontraron {} reseñas para la película {}", resenyas.size(), peliculaId);
+				txTemp.commit();
+				return Response.ok(resenyas).build();
+			} else {
+				logger.info("No se encontraron reseñas para la película {}", peliculaId);
+				txTemp.commit();
+				return Response.ok(new ArrayList<Resenya>()).build();
+			}
+		} catch (Exception e) {
+			logger.error("Error al obtener reseñas: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener reseñas").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+
+	@GET
+	@Path("/getAllResenyas")
+	public Response getAllResenyas() {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+
+			Query<Resenya> query = pmTemp.newQuery(Resenya.class);
+			List<Resenya> resenyas = (List<Resenya>) query.execute();
+
+			if (resenyas != null && !resenyas.isEmpty()) {
+				logger.info("Se encontraron {} reseñas", resenyas.size());
+				txTemp.commit();
+				return Response.ok(resenyas).build();
+			} else {
+				logger.info("No se encontraron reseñas");
+				txTemp.commit();
+				return Response.ok(new ArrayList<Resenya>()).build();
+			}
+		} catch (Exception e) {
+			logger.error("Error al obtener todas las reseñas: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener reseñas").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+
+	@GET
+	@Path("/getResenya/{resenyaId}")
+	public Response getResenya(@PathParam("resenyaId") long resenyaId) {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+
+			Resenya resenya = null;
+			try {
+				resenya = pmTemp.getObjectById(Resenya.class, resenyaId);
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Reseña no encontrada con ID: {}", resenyaId);
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Reseña no encontrada").build();
+			}
+
+			logger.info("Reseña encontrada: {}", resenya);
+			txTemp.commit();
+			return Response.ok(resenya).build();
+		} catch (Exception e) {
+			logger.error("Error al obtener reseña: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener reseña").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+
+	@POST
+	@Path("/addResenya")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response addResenya(Resenya resenya) {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+
+			Pelicula pelicula = null;
+			try {
+				pelicula = pmTemp.getObjectById(Pelicula.class, resenya.getPelicula().getId());
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Película no encontrada con ID: {}", resenya.getPelicula().getId());
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Película no encontrada").build();
+			}
+
+			Usuario usuario = null;
+			try {
+				Query<Usuario> query = pmTemp.newQuery(Usuario.class, "nombreUsuario == :nombreUsuario");
+				query.setUnique(true); // Esperamos un único resultado
+				usuario = (Usuario) query.execute(resenya.getUsuario().getNombreUsuario());
+
+				if (usuario == null) {
+					logger.info("Usuario no encontrado: {}", resenya.getUsuario().getNombreUsuario());
+					txTemp.rollback();
+					return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
+				}
+			} catch (Exception e) {
+				logger.error("Error al buscar usuario: {}", e.getMessage());
+				txTemp.rollback();
+				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al buscar usuario").build();
+			}
+
+			if (usuario == null) {
+				logger.info("Usuario no encontrado con nombre de usuario: {}", resenya.getUsuario().getNombreUsuario());
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Usuario no encontrado").build();
+			}
+
+			// Asignar la película y el usuario a la reseña
+			resenya.setPelicula(pelicula);
+			resenya.setUsuario(usuario);
+			pmTemp.makePersistent(resenya);
+			logger.info("Reseña creada: {}", resenya);
+
+			txTemp.commit();
+			return Response.ok(resenya).build();
+		} catch (Exception e) {
+			logger.error("Error al crear reseña: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al crear reseña").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+
+	@PUT
+	@Path("/updateResenya/{resenyaId}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response updateResenya(@PathParam("resenyaId") long resenyaId, Resenya updatedResenya) {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+
+			Resenya resenya = null;
+			try {
+				resenya = pmTemp.getObjectById(Resenya.class, resenyaId);
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Reseña no encontrada con ID: {}", resenyaId);
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Reseña no encontrada").build();
+			}
+
+			resenya.setComentario(updatedResenya.getComentario());
+			resenya.setPuntuacion(updatedResenya.getPuntuacion());
+			logger.info("Reseña actualizada: {}", resenya);
+
+			txTemp.commit();
+			return Response.ok(resenya).build();
+		} catch (Exception e) {
+			logger.error("Error al actualizar reseña: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al actualizar reseña").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+
+	@DELETE
+	@Path("/deleteResenya/{resenyaId}")
+	public Response deleteResenya(@PathParam("resenyaId") long resenyaId) {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+
+			Resenya resenya = null;
+			try {
+				resenya = pmTemp.getObjectById(Resenya.class, resenyaId);
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Reseña no encontrada con ID: {}", resenyaId);
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Reseña no encontrada").build();
+			}
+
+			pmTemp.deletePersistent(resenya);
+			logger.info("Reseña eliminada: {}", resenyaId);
+
+			txTemp.commit();
+			return Response.ok().build();
+		} catch (Exception e) {
+			logger.error("Error al eliminar reseña: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al eliminar reseña").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
 
 	
 	/**

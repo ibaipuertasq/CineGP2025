@@ -7,6 +7,7 @@
     <title>CineGP - Tu Cine de Confianza</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="../css/cliente.css">
+    <link rel="stylesheet" href="../css/resenya.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
@@ -20,6 +21,7 @@
             <nav class="nav-links">
                 <a href="#eventos">Cartelera</a>
                 <a href="#entradas">Mis Entradas</a>
+                <a href="#resenyas">Reseñas</a>
             </nav>
             <div class="dropdown">
                 <button class="dropbtn">
@@ -115,6 +117,48 @@
                 <button id="btnVerTodasEntradas" class="boton" type="button">Ver todas mis entradas</button>
             </div>
         </section>
+
+        <section id="resenyas" class="section">
+            <div class="section-header">
+                <h2>Reseñas</h2>
+                <p>Comparte tu opinión sobre las películas que has visto y lee lo que otros usuarios piensan. Tu experiencia es valiosa para la comunidad de CineGP.</p>
+            </div>
+            
+            <div class="resenyas-filtro">
+                <label for="peliculaSelect">Selecciona una película para ver sus reseñas:</label>
+                <select id="peliculaSelect" class="filtro-select">
+                    <option value="">-- Selecciona una película --</option>
+                    <!-- Las opciones se cargarán dinámicamente -->
+                </select>
+            </div>
+            
+            <div id="resenyas-section">
+                <div id="resenyas-container" class="resenyas-container">
+                    <p class="no-resenyas">Selecciona una película para ver sus reseñas.</p>
+                </div>
+                
+                <div class="formulario-resenya">
+                    <h4>Deja tu reseña</h4>
+                    <div class="rating">
+                        <p>Puntuación:</p>
+                        <div class="estrellas-input">
+                            <input type="radio" id="star5" name="puntuacion" value="5" />
+                            <label for="star5" class="material-icons">star</label>
+                            <input type="radio" id="star4" name="puntuacion" value="4" />
+                            <label for="star4" class="material-icons">star</label>
+                            <input type="radio" id="star3" name="puntuacion" value="3" />
+                            <label for="star3" class="material-icons">star</label>
+                            <input type="radio" id="star2" name="puntuacion" value="2" />
+                            <label for="star2" class="material-icons">star</label>
+                            <input type="radio" id="star1" name="puntuacion" value="1" />
+                            <label for="star1" class="material-icons">star</label>
+                        </div>
+                    </div>
+                    <textarea id="comentario" placeholder="Escribe tu comentario aquí" rows="4"></textarea>
+                    <button id="btnEnviarResenya" class="boton" data-pelicula-id="">Enviar reseña</button>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer>
@@ -146,9 +190,92 @@
         </div>
     </div>
 
+    <div id="resenyaEditModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Editar reseña</h2>
+            <div class="modal-info">
+                <div class="rating">
+                    <p>Puntuación:</p>
+                    <div class="estrellas-input">
+                        <input type="radio" id="editStar5" name="editPuntuacion" value="5" />
+                        <label for="editStar5" class="material-icons">star</label>
+                        <input type="radio" id="editStar4" name="editPuntuacion" value="4" />
+                        <label for="editStar4" class="material-icons">star</label>
+                        <input type="radio" id="editStar3" name="editPuntuacion" value="3" />
+                        <label for="editStar3" class="material-icons">star</label>
+                        <input type="radio" id="editStar2" name="editPuntuacion" value="2" />
+                        <label for="editStar2" class="material-icons">star</label>
+                        <input type="radio" id="editStar1" name="editPuntuacion" value="1" />
+                        <label for="editStar1" class="material-icons">star</label>
+                    </div>
+                </div>
+                <textarea id="editComentario" placeholder="Escribe tu comentario aquí" rows="4"></textarea>
+                <div class="button-container">
+                    <button id="guardarEdicionBtn" class="boton" data-id="">Guardar</button>
+                    <button id="cancelarEdicionBtn" class="boton boton-secundario">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="../js/cliente.js"></script>
     <script src="../js/pelicula/cargarPeliculas.js"></script>
     <script src="../js/entradas/cargarEntradas.js"></script>
+    <script  type="module" src="../js/resenya/resenya.js"></script>
+
+    <script>
+        // Script para cargar películas en el selector de reseñas
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar películas en el selector
+            const peliculaSelect = document.getElementById('peliculaSelect');
+            
+            if (peliculaSelect) {
+                fetch('http://localhost:8080/rest/resource/getPeliculas', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(peliculas => {
+                    peliculas.forEach(pelicula => {
+                        const option = document.createElement('option');
+                        option.value = pelicula.id;
+                        option.textContent = pelicula.titulo;
+                        peliculaSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar películas:', error);
+                });
+                
+                // Evento change para cargar reseñas cuando se selecciona una película
+                peliculaSelect.addEventListener('change', function() {
+                    const peliculaId = this.value;
+                    
+                    if (peliculaId) {
+                        // Establecer el ID de la película para el formulario
+                        document.getElementById('btnEnviarResenya').setAttribute('data-pelicula-id', peliculaId);
+                        
+                        // Como hemos agregado la función al objeto window, ahora debería estar disponible globalmente
+                        if (typeof window.cargarYMostrarResenyas === 'function') {
+                            window.cargarYMostrarResenyas(peliculaId);
+                        } else {
+                            console.error('La función cargarYMostrarResenyas no está disponible');
+                        }
+                    } else {
+                        const contenedor = document.getElementById('resenyas-container');
+                        contenedor.innerHTML = '<p class="no-resenyas">Selecciona una película para ver sus reseñas.</p>';
+                        
+                        // Limpiar el ID de la película del formulario
+                        document.getElementById('btnEnviarResenya').setAttribute('data-pelicula-id', '');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>

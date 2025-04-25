@@ -1,5 +1,8 @@
 // Variables globales
 const apiBaseUrl = 'http://localhost:8080/rest/resource';
+// Obtener userId de la URL (usado en varios lugares del script)
+const urlParams = new URLSearchParams(window.location.search);
+const userId = urlParams.get('nombreUsuario');
 
 // Función para cargar reseñas de una película
 async function cargarResenyas(peliculaId) {
@@ -27,6 +30,8 @@ async function cargarResenyas(peliculaId) {
 // Función para crear una nueva reseña
 async function crearResenya(resenya) {
     try {
+        console.log('Enviando reseña:', JSON.stringify(resenya)); // Para depuración
+        
         const response = await fetch(`${apiBaseUrl}/addResenya`, {
             method: 'POST',
             headers: {
@@ -37,7 +42,9 @@ async function crearResenya(resenya) {
         });
         
         if (!response.ok) {
-            throw new Error(`Error al crear reseña: ${response.status}`);
+            const errorText = await response.text();
+            console.error('Error de respuesta del servidor:', errorText);
+            throw new Error(`Error al crear reseña: ${response.status} - ${errorText}`);
         }
         
         const nuevaResenya = await response.json();
@@ -96,6 +103,12 @@ async function actualizarResenya(resenyaId, resenya) {
 
 // Función para mostrar las reseñas en la página
 function mostrarResenyas(resenyas, contenedor) {
+    // Asegurarnos de que contenedor exista
+    if (!contenedor) {
+        console.error('Contenedor de reseñas no encontrado');
+        return;
+    }
+    
     contenedor.innerHTML = '';
     
     if (!resenyas || resenyas.length === 0) {
@@ -118,21 +131,25 @@ function mostrarResenyas(resenyas, contenedor) {
         }
         
         // Crear el elemento de reseña con los datos
+        // Protección contra valores nulos
+        const nombreUsuario = resenya.usuario && resenya.usuario.nombre ? resenya.usuario.nombre : 'Usuario anónimo';
+        const comentario = resenya.comentario || 'Sin comentario';
+        
         resenyaElement.innerHTML = `
-            <div class="resenya-header">
-                <h4>${resenya.usuario.nombre}</h4>
-                <div class="estrellas">${estrellas}</div>
-            </div>
-            <p class="resenya-comentario">${resenya.comentario}</p>
-            <div class="resenya-acciones">
-                ${userId === resenya.usuario.nombre ? 
-                    `<button class="btn-editar" data-id="${resenya.id}">
-                        <span class="material-icons">edit</span>
-                    </button>
-                    <button class="btn-eliminar" data-id="${resenya.id}">
-                        <span class="material-icons">delete</span>
-                    </button>` : ''}
-            </div>
+        <div class="resenya-header">
+            <h4>${nombreUsuario}</h4>
+            <div class="estrellas">${estrellas}</div>
+        </div>
+        <p class="resenya-comentario">${comentario}</p>
+        <div class="resenya-acciones">
+            ${userId === (resenya.usuario && resenya.usuario.nombreUsuario) ?
+                `<button class="btn-editar" data-id="${resenya.id}">
+                    <span class="material-icons">edit</span>
+                </button>
+                <button class="btn-eliminar" data-id="${resenya.id}">
+                    <span class="material-icons">delete</span>
+                </button>` : ''}
+        </div>
         `;
         
         contenedor.appendChild(resenyaElement);
@@ -157,14 +174,24 @@ function mostrarResenyas(resenyas, contenedor) {
 // Función para mostrar el formulario de edición de una reseña
 function mostrarFormularioEdicion(resenyaId, resenyas) {
     const resenya = resenyas.find(r => r.id == resenyaId);
-    if (!resenya) return;
+    if (!resenya) {
+        console.error(`No se encontró la reseña con ID ${resenyaId}`);
+        return;
+    }
     
     // Mostrar el modal de edición
     const modal = document.getElementById('resenyaEditModal');
+    if (!modal) {
+        console.error('Modal de edición no encontrado');
+        return;
+    }
+    
     const comentarioInput = document.getElementById('editComentario');
     const puntuacionRadios = document.querySelectorAll('input[name="editPuntuacion"]');
     
-    comentarioInput.value = resenya.comentario;
+    if (comentarioInput) {
+        comentarioInput.value = resenya.comentario || '';
+    }
     
     // Seleccionar el radio button correspondiente a la puntuación
     puntuacionRadios.forEach(radio => {
@@ -174,7 +201,10 @@ function mostrarFormularioEdicion(resenyaId, resenyas) {
     });
     
     // Establecer el ID de la reseña para la edición
-    document.getElementById('guardarEdicionBtn').setAttribute('data-id', resenyaId);
+    const guardarBtn = document.getElementById('guardarEdicionBtn');
+    if (guardarBtn) {
+        guardarBtn.setAttribute('data-id', resenyaId);
+    }
     
     // Mostrar el modal
     modal.style.display = 'block';
@@ -186,11 +216,21 @@ function confirmarEliminarResenya(resenyaId) {
         eliminarResenya(resenyaId)
             .then(() => {
                 // Recargar las reseñas de la película actual
-                const peliculaId = document.getElementById('btnEnviarResenya').getAttribute('data-pelicula-id');
+                const btnEnviar = document.getElementById('btnEnviarResenya');
+                if (!btnEnviar) {
+                    throw new Error('No se encontró el botón de enviar reseña');
+                }
+                const peliculaId = btnEnviar.getAttribute('data-pelicula-id');
+                if (!peliculaId) {
+                    throw new Error('No hay película seleccionada');
+                }
                 return cargarResenyas(peliculaId);
             })
             .then(resenyas => {
                 const contenedor = document.getElementById('resenyas-container');
+                if (!contenedor) {
+                    throw new Error('Contenedor de reseñas no encontrado');
+                }
                 mostrarResenyas(resenyas, contenedor);
                 mostrarMensajeExito('La reseña se ha eliminado correctamente.');
             })
@@ -222,6 +262,11 @@ function mostrarMensajeExito(mensaje) {
     alertaElement.textContent = mensaje;
     
     const seccionResenyas = document.getElementById('resenyas-section');
+    if (!seccionResenyas) {
+        console.error('Sección de reseñas no encontrada');
+        return;
+    }
+    
     seccionResenyas.insertBefore(alertaElement, seccionResenyas.firstChild);
     
     setTimeout(() => {
@@ -237,6 +282,11 @@ function mostrarMensajeError(mensaje) {
     alertaElement.textContent = mensaje;
     
     const seccionResenyas = document.getElementById('resenyas-section');
+    if (!seccionResenyas) {
+        console.error('Sección de reseñas no encontrada');
+        return;
+    }
+    
     seccionResenyas.insertBefore(alertaElement, seccionResenyas.firstChild);
     
     setTimeout(() => {
@@ -247,13 +297,20 @@ function mostrarMensajeError(mensaje) {
 // Inicializar el formulario de reseñas cuando se muestra el modal de película
 function inicializarFormularioResenyas(peliculaId) {
     // Limpiar formulario
-    document.getElementById('comentario').value = '';
+    const comentarioElement = document.getElementById('comentario');
+    if (comentarioElement) {
+        comentarioElement.value = '';
+    }
+    
     document.querySelectorAll('input[name="puntuacion"]').forEach(radio => {
         radio.checked = false;
     });
     
     // Establecer el ID de la película para el formulario
-    document.getElementById('btnEnviarResenya').setAttribute('data-pelicula-id', peliculaId);
+    const btnEnviar = document.getElementById('btnEnviarResenya');
+    if (btnEnviar) {
+        btnEnviar.setAttribute('data-pelicula-id', peliculaId);
+    }
     
     // Cargar reseñas existentes
     cargarYMostrarResenyas(peliculaId);
@@ -265,7 +322,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (btnEnviarResenya) {
         btnEnviarResenya.addEventListener('click', function() {
             const peliculaId = this.getAttribute('data-pelicula-id');
-            const comentario = document.getElementById('comentario').value;
+            if (!peliculaId) {
+                mostrarMensajeError('Por favor, selecciona una película primero.');
+                return;
+            }
+            
+            const comentarioElement = document.getElementById('comentario');
+            if (!comentarioElement) {
+                mostrarMensajeError('Error: No se encontró el campo de comentario.');
+                return;
+            }
+            
+            const comentario = comentarioElement.value;
             const puntuacionRadios = document.querySelectorAll('input[name="puntuacion"]');
             let puntuacion = 0;
             
@@ -286,15 +354,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
+            // Verificar que el usuario está autenticado
+            if (!userId) {
+                mostrarMensajeError('Debes iniciar sesión para publicar una reseña.');
+                return;
+            }
+            
             // Crear objeto de reseña
             const resenya = {
                 comentario: comentario,
                 puntuacion: puntuacion,
                 usuario: {
-                    nombre: userId
+                    nombreUsuario: userId  // Cambiar 'nombre' por 'nombreUsuario'
                 },
                 pelicula: {
-                    id: peliculaId
+                    id: parseInt(peliculaId)
                 }
             };
             
@@ -311,9 +385,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     return cargarResenyas(peliculaId);
                 })
                 .then(resenyas => {
-                    const contenedor = document.getElementById('resenyas-container');
-                    mostrarResenyas(resenyas, contenedor);
-                    mostrarMensajeExito('Tu reseña se ha publicado correctamente.');
+                    const nombreUsuario = resenya.usuario && resenya.usuario.nombreUsuario ? resenya.usuario.nombreUsuario : 'Usuario anónimo';                    if (contenedor) {
+                        mostrarResenyas(resenyas, contenedor);
+                        mostrarMensajeExito('Tu reseña se ha publicado correctamente.');
+                    }
                 })
                 .catch(error => {
                     mostrarMensajeError(`Error al publicar tu reseña: ${error.message}`);
@@ -326,7 +401,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (guardarEdicionBtn) {
         guardarEdicionBtn.addEventListener('click', function() {
             const resenyaId = this.getAttribute('data-id');
-            const comentario = document.getElementById('editComentario').value;
+            if (!resenyaId) {
+                alert('Error: ID de reseña no encontrado');
+                return;
+            }
+            
+            const comentarioElement = document.getElementById('editComentario');
+            if (!comentarioElement) {
+                alert('Error: Campo de comentario no encontrado');
+                return;
+            }
+            
+            const comentario = comentarioElement.value;
             const puntuacionRadios = document.querySelectorAll('input[name="editPuntuacion"]');
             let puntuacion = 0;
             
@@ -357,14 +443,30 @@ document.addEventListener('DOMContentLoaded', function() {
             actualizarResenya(resenyaId, resenya)
                 .then(() => {
                     // Cerrar el modal
-                    document.getElementById('resenyaEditModal').style.display = 'none';
+                    const modal = document.getElementById('resenyaEditModal');
+                    if (modal) {
+                        modal.style.display = 'none';
+                    }
                     
                     // Recargar reseñas
-                    const peliculaId = document.getElementById('btnEnviarResenya').getAttribute('data-pelicula-id');
+                    const btnEnviar = document.getElementById('btnEnviarResenya');
+                    if (!btnEnviar) {
+                        throw new Error('Botón de enviar reseña no encontrado');
+                    }
+                    
+                    const peliculaId = btnEnviar.getAttribute('data-pelicula-id');
+                    if (!peliculaId) {
+                        throw new Error('No hay película seleccionada');
+                    }
+                    
                     return cargarResenyas(peliculaId);
                 })
                 .then(resenyas => {
                     const contenedor = document.getElementById('resenyas-container');
+                    if (!contenedor) {
+                        throw new Error('Contenedor de reseñas no encontrado');
+                    }
+                    
                     mostrarResenyas(resenyas, contenedor);
                     mostrarMensajeExito('Tu reseña se ha actualizado correctamente.');
                 })
@@ -378,18 +480,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelarEdicionBtn = document.getElementById('cancelarEdicionBtn');
     if (cancelarEdicionBtn) {
         cancelarEdicionBtn.addEventListener('click', function() {
-            document.getElementById('resenyaEditModal').style.display = 'none';
+            const modal = document.getElementById('resenyaEditModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
         });
     }
     
     // Evento para cerrar el modal de edición al hacer clic fuera
     window.addEventListener('click', function(event) {
         const modal = document.getElementById('resenyaEditModal');
-        if (event.target === modal) {
+        if (modal && event.target === modal) {
             modal.style.display = 'none';
         }
     });
 });
+
+// Hacer la función disponible globalmente
+window.cargarYMostrarResenyas = cargarYMostrarResenyas;
 
 // Exportar funciones para su uso en otros archivos
 export {
@@ -398,5 +506,6 @@ export {
     eliminarResenya,
     actualizarResenya,
     mostrarResenyas,
-    inicializarFormularioResenyas
+    inicializarFormularioResenyas,
+    cargarYMostrarResenyas
 };
