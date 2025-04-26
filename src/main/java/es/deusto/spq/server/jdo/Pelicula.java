@@ -1,6 +1,8 @@
 package es.deusto.spq.server.jdo;
 import javax.jdo.annotations.*;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -18,6 +20,7 @@ public class Pelicula {
     @Persistent private String sinopsis;
     @Persistent private String horario; // Horarios de proyección
     @Persistent(defaultFetchGroup = "true")
+    @JsonManagedReference 
     private Sala sala;
     
 

@@ -15,6 +15,7 @@ public class Sala {
 
     @Persistent(defaultFetchGroup = "true")
     private List<Asiento> asientos;
+    
 
     public Sala() {
     }

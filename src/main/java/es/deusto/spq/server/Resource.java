@@ -263,7 +263,8 @@ public class Resource {
 
 			resenya.setComentario(updatedResenya.getComentario());
 			resenya.setPuntuacion(updatedResenya.getPuntuacion());
-			logger.info("Reseña actualizada: {}", resenya);
+			logger.info("Reseña actualizada: {}", resenya.getComentario(), resenya.getPuntuacion(), resenya.getPelicula().getTitulo(), resenya.getUsuario().getNombreUsuario());
+
 
 			txTemp.commit();
 			return Response.ok(resenya).build();
@@ -320,6 +321,8 @@ public class Resource {
 	}
 
 	
+	
+
 	/**
      * Retrieves a specific movie by its ID.
      * 
@@ -327,44 +330,44 @@ public class Resource {
      * @return A Response containing the movie if found, or a NOT_FOUND status if not.
      */
     @GET
-    @Path("/getPelicula/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getPelicula(@PathParam("id") long id) {
-        PersistenceManager pmTemp = null;
-        Transaction txTemp = null;
+	@Path("/getPelicula/{id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getPelicula(@PathParam("id") long id) {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
 
-        try {
-            PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
-            pmTemp = pmf.getPersistenceManager();
-            txTemp = pmTemp.currentTransaction();
-            txTemp.begin();
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
 
-            Pelicula pelicula = null;
-            try {
-                pelicula = pmTemp.getObjectById(Pelicula.class, id);
-            } catch (javax.jdo.JDOObjectNotFoundException jonfe) {
-                logger.info("Película no encontrada con ID: {}", id);
-                txTemp.rollback();
-                return Response.status(Response.Status.NOT_FOUND).entity("Película no encontrada").build();
-            }
+			Pelicula pelicula = null;
+			try {
+				pelicula = pmTemp.getObjectById(Pelicula.class, id);
+				pelicula = pmTemp.detachCopy(pelicula); // Forzar la carga de los campos
+			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+				logger.info("Película no encontrada con ID: {}", id);
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Película no encontrada").build();
+			}
 
-            logger.info("Película encontrada: {}", pelicula);
-            txTemp.commit();
-            return Response.ok(pelicula).build();
+			logger.info("Película encontrada: {}", pelicula.getTitulo());
+			txTemp.commit();
+			return Response.ok(pelicula).build();
 
-        } catch (Exception e) {
-            logger.error("Error al obtener película: {}", e.getMessage());
-            if (txTemp != null && txTemp.isActive()) {
-                txTemp.rollback();
-            }
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener película").build();
-        } finally {
-            if (pmTemp != null && !pmTemp.isClosed()) {
-                pmTemp.close();
-            }
-        }
-    }
-
+		} catch (Exception e) {
+			logger.error("Error al obtener película: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener película").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
 
 	/**
 	 * Logs in a user and returns a response.
@@ -749,6 +752,47 @@ public class Resource {
 		}
 	}
 
+
+	@GET
+@Path("/getSala/{salaId}")
+@Produces(MediaType.APPLICATION_JSON)
+public Response getSala(@PathParam("salaId") long salaId) {
+    PersistenceManager pmTemp = null;
+    Transaction txTemp = null;
+
+    try {
+        PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+        pmTemp = pmf.getPersistenceManager();
+        txTemp = pmTemp.currentTransaction();
+        txTemp.begin();
+
+        Sala sala = null;
+        try {
+            sala = pmTemp.getObjectById(Sala.class, salaId);
+            sala = pmTemp.detachCopy(sala); // Detach para evitar problemas de serialización
+        } catch (javax.jdo.JDOObjectNotFoundException jonfe) {
+            logger.info("Sala no encontrada con ID: {}", salaId);
+            txTemp.rollback();
+            return Response.status(Response.Status.NOT_FOUND).entity("Sala no encontrada").build();
+        }
+
+        logger.info("Sala encontrada: {}", sala.getId());
+        txTemp.commit();
+        return Response.ok(sala).build();
+
+    } catch (Exception e) {
+        logger.error("Error al obtener sala: {}", e.getMessage());
+        if (txTemp != null && txTemp.isActive()) {
+            txTemp.rollback();
+        }
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener sala").build();
+    } finally {
+        if (pmTemp != null && !pmTemp.isClosed()) {
+            pmTemp.close();
+        }
+    }
+}
+
 	/**
 	 * Creates a new peli in the system.
 	 * 
@@ -876,50 +920,52 @@ public class Resource {
 	 * @param pelicula The pelicula object containing the updated information.
 	 * @return A Response indicating the success or failure of the update operation.
 	 */
-	@POST
-	@Path("/actualizarPelicula")
-	public Response actualizarpelicula(Pelicula pelicula) {
+	@PUT
+	@Path("/updatePelicula/{peliculaId}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response updatePelicula(@PathParam("peliculaId") long peliculaId, Pelicula updatedPelicula) {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+
 		try {
-			tx.begin();
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
 
-			Pelicula peli = null;
-
+			Pelicula pelicula = null;
 			try {
-				peli = pm.getObjectById(Pelicula.class, pelicula.getId());
+				pelicula = pmTemp.getObjectById(Pelicula.class, peliculaId);
 			} catch (javax.jdo.JDOObjectNotFoundException jonfe) {
-				logger.info("Exception launched: {}", jonfe.getMessage());
+				logger.info("Reseña no encontrada con ID: {}", peliculaId);
+				txTemp.rollback();
+				return Response.status(Response.Status.NOT_FOUND).entity("Reseña no encontrada").build();
 			}
 
-			if (peli != null) {
-				Response response = eliminarpelicula(String.valueOf(peli.getId()));
-				if (response.getStatus() == 200) {
-					peli.setTitulo(pelicula.getTitulo());
-					peli.setGenero(pelicula.getGenero());
-					peli.setDuracion(pelicula.getDuracion());
-					peli.setFechaEstreno(pelicula.getFechaEstreno());
-					peli.setDirector(pelicula.getDirector());
-					peli.setSinopsis(pelicula.getSinopsis());
-					peli.setHorario(pelicula.getHorario());
-					peli.setSala(pelicula.getSala());
+			pelicula.setDirector(updatedPelicula.getDirector());
+			pelicula.setDuracion(updatedPelicula.getDuracion());	
+			pelicula.setFechaEstreno(updatedPelicula.getFechaEstreno());
+			pelicula.setGenero(updatedPelicula.getGenero());
+			pelicula.setHorario(updatedPelicula.getHorario());
+			pelicula.setSinopsis(updatedPelicula.getSinopsis());
+			pelicula.setTitulo(updatedPelicula.getTitulo());	
+			pelicula.setSala(updatedPelicula.getSala());
+			logger.info("pelicula actualizada: {}", pelicula.getTitulo(), pelicula.getDirector(), pelicula.getDuracion(), pelicula.getFechaEstreno(), pelicula.getGenero(), pelicula.getHorario(), pelicula.getSinopsis(), pelicula.getSala());
 
-					logger.info("peli updated: {}", peli);
-					tx.commit();
-					return Response.ok().build();
-				} else {
-					logger.info("peli not found");
-					tx.rollback();
-					return Response.status(Response.Status.NOT_FOUND).entity("peli not deleted").build();
-				}
-			} else {
-				logger.info("peli not found");
-				tx.rollback();
-				return Response.status(Response.Status.NOT_FOUND).entity("peli not found").build();
+			
+			txTemp.commit();
+			return Response.ok(pelicula).build();
+		} catch (Exception e) {
+			logger.error("Error al actualizar reseña: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
 			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al actualizar reseña").build();
 		} finally {
-			if (tx.isActive()) {
-				tx.rollback();
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
 			}
-			pm.close();
 		}
 	}
 
