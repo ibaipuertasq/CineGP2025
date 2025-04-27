@@ -116,10 +116,11 @@
     margin-bottom: 16px;
 }
 
+/* Reemplaza el bloque .estrellas-input en resenya.css */
 .estrellas-input {
     display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
+    flex-direction: row-reverse; /* Esto invierte el orden visual */
+    justify-content: flex-end; /* Alinea a la izquierda */
 }
 
 .estrellas-input input {
@@ -134,15 +135,19 @@
     transition: all 0.2s;
 }
 
-.estrellas-input:hover label {
+/* Todas las estrellas después del radio seleccionado */
+.estrellas-input input:checked ~ label {
     color: #ffc107;
 }
 
+/* Efecto hover - todas las estrellas a la izquierda del hover */
+.estrellas-input label:hover,
 .estrellas-input label:hover ~ label {
-    color: #e0e0e0;
+    color: #ffc107;
 }
 
-.estrellas-input input:checked ~ label {
+/* Estrellas ya seleccionadas */
+.estrellas-input input:checked + label {
     color: #ffc107;
 }
 
