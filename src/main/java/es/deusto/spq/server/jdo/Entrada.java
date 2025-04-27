@@ -40,6 +40,10 @@ public class Entrada {
         return id;
     }
 
+    public void setId(long id) {
+        this.id = id;
+    }
+
     public Usuario getUsuario() {
         return usuario;
     }
