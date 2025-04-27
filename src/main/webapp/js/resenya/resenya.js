@@ -3,6 +3,7 @@ const apiBaseUrl = 'http://localhost:8080/rest/resource';
 // Obtener userId de la URL (usado en varios lugares del script)
 const urlParams = new URLSearchParams(window.location.search);
 const userId = urlParams.get('nombreUsuario');
+const contenedorResenyas = document.getElementById('resenyas-container');
 
 // Función para cargar reseñas de una película
 async function cargarResenyas(peliculaId) {
@@ -109,6 +110,7 @@ function mostrarResenyas(resenyas, contenedor) {
         return;
     }
     
+    // Limpiar el contenedor
     contenedor.innerHTML = '';
     
     if (!resenyas || resenyas.length === 0) {
@@ -116,6 +118,10 @@ function mostrarResenyas(resenyas, contenedor) {
         return;
     }
     
+    // Ordenar reseñas por fecha (las más nuevas primero)
+    resenyas.sort((a, b) => new Date(b.fechaCreacion || 0) - new Date(a.fechaCreacion || 0));
+    
+    // Mostrar cada reseña
     resenyas.forEach(resenya => {
         const resenyaElement = document.createElement('div');
         resenyaElement.className = 'resenya-item';
@@ -123,33 +129,30 @@ function mostrarResenyas(resenyas, contenedor) {
         // Crear la representación de estrellas
         let estrellas = '';
         for (let i = 1; i <= 5; i++) {
-            if (i <= resenya.puntuacion) {
-                estrellas += '<span class="material-icons estrella-llena">star</span>';
-            } else {
-                estrellas += '<span class="material-icons estrella-vacia">star_border</span>';
-            }
+            estrellas += i <= resenya.puntuacion 
+                ? '<span class="material-icons estrella-llena">star</span>' 
+                : '<span class="material-icons estrella-vacia">star_border</span>';
         }
         
-        // Crear el elemento de reseña con los datos
-        // Protección contra valores nulos
-        const nombreUsuario = resenya.usuario && resenya.usuario.nombre ? resenya.usuario.nombre : 'Usuario anónimo';
+        // Crear el elemento de reseña
+        const nombreUsuario = resenya.usuario?.nombre || resenya.usuario?.nombreUsuario || 'Usuario anónimo';
         const comentario = resenya.comentario || 'Sin comentario';
         
         resenyaElement.innerHTML = `
-        <div class="resenya-header">
-            <h4>${nombreUsuario}</h4>
-            <div class="estrellas">${estrellas}</div>
-        </div>
-        <p class="resenya-comentario">${comentario}</p>
-        <div class="resenya-acciones">
-            ${userId === (resenya.usuario && resenya.usuario.nombreUsuario) ?
-                `<button class="btn-editar" data-id="${resenya.id}">
+            <div class="resenya-header">
+                <h4>${nombreUsuario}</h4>
+                <div class="estrellas">${estrellas}</div>
+            </div>
+            <p class="resenya-comentario">${comentario}</p>
+            ${userId === resenya.usuario?.nombreUsuario ? `
+            <div class="resenya-acciones">
+                <button class="btn-editar" data-id="${resenya.id}">
                     <span class="material-icons">edit</span>
                 </button>
                 <button class="btn-eliminar" data-id="${resenya.id}">
                     <span class="material-icons">delete</span>
-                </button>` : ''}
-        </div>
+                </button>
+            </div>` : ''}
         `;
         
         contenedor.appendChild(resenyaElement);
@@ -241,17 +244,26 @@ function confirmarEliminarResenya(resenyaId) {
 }
 
 // Función para cargar y mostrar reseñas de una película
-function cargarYMostrarResenyas(peliculaId) {
-    const contenedor = document.getElementById('resenyas-container');
-    contenedor.innerHTML = '<div class="loading-spinner"></div><p>Cargando reseñas...</p>';
+async function cargarYMostrarResenyas(peliculaId) {
+    if (!contenedorResenyas) {
+        console.error('Contenedor de reseñas no encontrado');
+        return;
+    }
     
-    cargarResenyas(peliculaId)
-        .then(resenyas => {
-            mostrarResenyas(resenyas, contenedor);
-        })
-        .catch(error => {
-            contenedor.innerHTML = `<p class="error-message">Error al cargar las reseñas: ${error.message}</p>`;
-        });
+    contenedorResenyas.innerHTML = '<div class="loading-spinner"></div><p>Cargando reseñas...</p>';
+    
+    try {
+        const resenyas = await cargarResenyas(peliculaId);
+        mostrarResenyas(resenyas, contenedorResenyas);
+        
+        // Actualizar el botón de enviar con el ID de película
+        const btnEnviar = document.getElementById('btnEnviarResenya');
+        if (btnEnviar) {
+            btnEnviar.setAttribute('data-pelicula-id', peliculaId);
+        }
+    } catch (error) {
+        contenedorResenyas.innerHTML = `<p class="error-message">Error al cargar las reseñas: ${error.message}</p>`;
+    }
 }
 
 // Función para mostrar mensajes de éxito
@@ -324,83 +336,90 @@ document.addEventListener('DOMContentLoaded', function() {
         cargarYMostrarResenyas(peliculaSeleccionada.value);
     });
 
-    const btnEnviarResenya = document.getElementById('btnEnviarResenya');
-    if (btnEnviarResenya) {
-        btnEnviarResenya.addEventListener('click', function() {
-            const peliculaId = this.getAttribute('data-pelicula-id');
-            if (!peliculaId) {
-                mostrarMensajeError('Por favor, selecciona una película primero.');
-                return;
+    // Reemplaza esta parte del código en resenya.js
+const btnEnviarResenya = document.getElementById('btnEnviarResenya');
+if (btnEnviarResenya) {
+    btnEnviarResenya.addEventListener('click', async function() {
+        const peliculaId = this.getAttribute('data-pelicula-id');
+        if (!peliculaId) {
+            mostrarMensajeError('Por favor, selecciona una película primero.');
+            return;
+        }
+        
+        const comentarioElement = document.getElementById('comentario');
+        if (!comentarioElement) {
+            mostrarMensajeError('Error: No se encontró el campo de comentario.');
+            return;
+        }
+        
+        const comentario = comentarioElement.value;
+        const puntuacionRadios = document.querySelectorAll('input[name="puntuacion"]');
+        let puntuacion = 0;
+        
+        puntuacionRadios.forEach(radio => {
+            if (radio.checked) {
+                puntuacion = parseInt(radio.value);
             }
-            
-            const comentarioElement = document.getElementById('comentario');
-            if (!comentarioElement) {
-                mostrarMensajeError('Error: No se encontró el campo de comentario.');
-                return;
+        });
+        
+        // Validar los datos
+        if (!comentario || comentario.trim() === '') {
+            mostrarMensajeError('Por favor, escribe un comentario para tu reseña.');
+            return;
+        }
+        
+        if (puntuacion === 0) {
+            mostrarMensajeError('Por favor, selecciona una puntuación para tu reseña.');
+            return;
+        }
+        
+        // Verificar que el usuario está autenticado
+        if (!userId) {
+            mostrarMensajeError('Debes iniciar sesión para publicar una reseña.');
+            return;
+        }
+        
+        // Crear objeto de reseña
+        const resenya = {
+            comentario: comentario,
+            puntuacion: puntuacion,
+            usuario: {
+                nombreUsuario: userId
+            },
+            pelicula: {
+                id: parseInt(peliculaId)
             }
+        };
+        
+        try {
+            // Enviar reseña al servidor
+            await crearResenya(resenya);
             
-            const comentario = comentarioElement.value;
-            const puntuacionRadios = document.querySelectorAll('input[name="puntuacion"]');
-            let puntuacion = 0;
-            
+            // Limpiar formulario
+            comentarioElement.value = '';
             puntuacionRadios.forEach(radio => {
-                if (radio.checked) {
-                    puntuacion = parseInt(radio.value);
-                }
+                radio.checked = false;
             });
             
-            // Validar los datos
-            if (!comentario || comentario.trim() === '') {
-                mostrarMensajeError('Por favor, escribe un comentario para tu reseña.');
-                return;
+            // Recargar y mostrar reseñas
+            const resenyasActualizadas = await cargarResenyas(peliculaId);
+            const contenedor = document.getElementById('resenyas-container');
+            mostrarResenyas(resenyasActualizadas, contenedor);
+            
+            // Mostrar mensaje de éxito
+            mostrarMensajeExito('Tu reseña se ha publicado correctamente.');
+            
+            // Mantener la selección de la película
+            const peliculaSelect = document.getElementById('peliculaSelect');
+            if (peliculaSelect) {
+                peliculaSelect.value = peliculaId;
             }
             
-            if (puntuacion === 0) {
-                mostrarMensajeError('Por favor, selecciona una puntuación para tu reseña.');
-                return;
-            }
-            
-            // Verificar que el usuario está autenticado
-            if (!userId) {
-                mostrarMensajeError('Debes iniciar sesión para publicar una reseña.');
-                return;
-            }
-            
-            // Crear objeto de reseña
-            const resenya = {
-                comentario: comentario,
-                puntuacion: puntuacion,
-                usuario: {
-                    nombreUsuario: userId  // Cambiar 'nombre' por 'nombreUsuario'
-                },
-                pelicula: {
-                    id: parseInt(peliculaId)
-                }
-            };
-            
-            // Enviar reseña al servidor
-            crearResenya(resenya)
-                .then(() => {
-                    // Limpiar formulario
-                    document.getElementById('comentario').value = '';
-                    puntuacionRadios.forEach(radio => {
-                        radio.checked = false;
-                    });
-                    
-                    // Recargar reseñas
-                    return cargarResenyas(peliculaId);
-                })
-                .then(resenyas => {
-                    const nombreUsuario = resenya.usuario && resenya.usuario.nombreUsuario ? resenya.usuario.nombreUsuario : 'Usuario anónimo';                    if (contenedor) {
-                        mostrarResenyas(resenyas, contenedor);
-                        mostrarMensajeExito('Tu reseña se ha publicado correctamente.');
-                    }
-                })
-                .catch(error => {
-                    mostrarMensajeError(`Error al publicar tu reseña: ${error.message}`);
-                });
-        });
-    }
+        } catch (error) {
+            mostrarMensajeError(`Error al publicar tu reseña: ${error.message}`);
+        }
+    });
+}
     
     // Evento para guardar la edición de una reseña
     const guardarEdicionBtn = document.getElementById('guardarEdicionBtn');
