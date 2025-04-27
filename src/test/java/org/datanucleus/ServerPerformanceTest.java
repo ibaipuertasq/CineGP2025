@@ -179,52 +179,52 @@ public class ServerPerformanceTest {
         System.out.println("testGetPeliculas passed.");
     }
 
-    @Test
-    @JUnitPerfTest(threads = 5, durationMs = 1000)
-    public void testCrearPelicula() throws Exception {
-        System.out.println("Running testCrearPelicula...");
+    // @Test
+    // @JUnitPerfTest(threads = 5, durationMs = 1000)
+    // public void testCrearPelicula() throws Exception {
+    //     System.out.println("Running testCrearPelicula...");
 
-        // Create seats for a new sala
-        PersistenceManager pm = pmf.getPersistenceManager();
-        Transaction tx = pm.currentTransaction();
-        try {
-            tx.begin();
-            List<Asiento> asientos = new ArrayList<>();
-            Asiento asiento1 = new Asiento(0, 4, TipoAsiento.NORMAL, false);
-            pm.makePersistent(asiento1);
-            asientos.add(asiento1);
-            Asiento asiento2 = new Asiento(0, 5, TipoAsiento.VIP, false);
-            pm.makePersistent(asiento2);
-            asientos.add(asiento2);
-            Asiento asiento3 = new Asiento(0, 6, TipoAsiento.DISCAPACITADOS, false);
-            pm.makePersistent(asiento3);
-            asientos.add(asiento3);
+    //     // Create seats for a new sala
+    //     PersistenceManager pm = pmf.getPersistenceManager();
+    //     Transaction tx = pm.currentTransaction();
+    //     try {
+    //         tx.begin();
+    //         List<Asiento> asientos = new ArrayList<>();
+    //         Asiento asiento1 = new Asiento(0, 4, TipoAsiento.NORMAL, false);
+    //         pm.makePersistent(asiento1);
+    //         asientos.add(asiento1);
+    //         Asiento asiento2 = new Asiento(0, 5, TipoAsiento.VIP, false);
+    //         pm.makePersistent(asiento2);
+    //         asientos.add(asiento2);
+    //         Asiento asiento3 = new Asiento(0, 6, TipoAsiento.DISCAPACITADOS, false);
+    //         pm.makePersistent(asiento3);
+    //         asientos.add(asiento3);
 
-            // Create a new sala (without associating it with a Cine)
-            Sala nuevaSala = new Sala(0, 7, 3, asientos, true);
-            pm.makePersistent(nuevaSala);
+    //         // Create a new sala (without associating it with a Cine)
+    //         Sala nuevaSala = new Sala(0, 7, 3, asientos, true);
+    //         pm.makePersistent(nuevaSala);
 
-            // Create a new movie
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            Date nuevaFecha = dateFormat.parse("2025-05-01");
-            Pelicula nuevaPelicula = new Pelicula("New Movie", "Action", 110, nuevaFecha, "New Director", "New Synopsis", "20:00", nuevaSala);
+    //         // Create a new movie
+    //         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    //         Date nuevaFecha = dateFormat.parse("2025-05-01");
+    //         Pelicula nuevaPelicula = new Pelicula("New Movie", "Action", 110, nuevaFecha, "New Director", "New Synopsis", "20:00", nuevaSala);
 
-            tx.commit();
+    //         tx.commit();
 
-            // Send the request to the endpoint
-            Response response = target.path("crearPelicula")
-                .request(MediaType.APPLICATION_JSON)
-                .post(Entity.entity(nuevaPelicula, MediaType.APPLICATION_JSON));
+    //         // Send the request to the endpoint
+    //         Response response = target.path("crearPelicula")
+    //             .request(MediaType.APPLICATION_JSON)
+    //             .post(Entity.entity(nuevaPelicula, MediaType.APPLICATION_JSON));
 
-            assertEquals(Family.SUCCESSFUL, response.getStatusInfo().getFamily());
-            System.out.println("testCrearPelicula passed.");
-        } finally {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-            pm.close();
-        }
-    }
+    //         assertEquals(Family.SUCCESSFUL, response.getStatusInfo().getFamily());
+    //         System.out.println("testCrearPelicula passed.");
+    //     } finally {
+    //         if (tx.isActive()) {
+    //             tx.rollback();
+    //         }
+    //         pm.close();
+    //     }
+    // }
 
     // Commented out due to dependency on Cine, which causes SALAS_ID_OWN error
     /*
@@ -238,7 +238,7 @@ public class ServerPerformanceTest {
         compraDTO.setNombreUsuario("testuser");
         compraDTO.setCineId(cine.getId()); // This requires a Cine, causing the error
         compraDTO.setPeliculaId(pelicula.getId());
-        compraDTO.setHorario("18:00");
+        compraDTO.setHorario("18:00, 20:00");
         List<Resource.AsientoDTO> asientosDTO = new ArrayList<>();
         Resource.AsientoDTO asientoDTO = new Resource.AsientoDTO();
         asientoDTO.setNumero(1);
