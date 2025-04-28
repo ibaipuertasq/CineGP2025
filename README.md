@@ -45,10 +45,6 @@ Pruebas de Rendimiento:
 
       mvn clean verify -Pperformance-tests
 
-run only JDOTest:
-
-      mvn clean test -Dtest=org.datanucleus.JDOTest
-
 To launch the web client open the link:
 
 http://localhost:8080
