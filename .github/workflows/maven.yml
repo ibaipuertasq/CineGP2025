@@ -43,10 +43,15 @@ jobs:
       run: sudo apt-get install -y doxygen
 
     - name: Generate Doxyfile
-      run: doxygen -g
+      run: |
+        mkdir -p target/doxygen
+        doxygen -g target/doxygen/Doxyfile
+
+    - name: Check Doxyfile
+      run: ls -la target/doxygen/Doxyfile || echo "Doxyfile not found"
 
     - name: Generate Doxygen documentation
-      run: doxygen target/doxygen/Doxyfile
+      run: mvn doxygen:report
 
     - name: Deploy
       uses: JamesIves/github-pages-deploy-action@v4
