@@ -11,6 +11,7 @@
 	<name>CineGP2025</name>
 
 	<properties>
+		<doxygen.config.file>${basedir}/src/main/resources/Doxyfile</doxygen.config.file>
 		<maven.compiler.release>8</maven.compiler.release>
 		<config.files.dir>${basedir}/src/main/resources</config.files.dir>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -117,6 +118,14 @@
 		</resources>
 
 		<plugins>
+			<plugin>
+				<groupId>com.soebes.maven.plugins</groupId>
+				<artifactId>doxygen-maven-plugin</artifactId>
+				<version>1.1.0</version>
+				<configuration>
+					<configurationFile>${doxygen.config.file}</configurationFile>
+				</configuration>
+			</plugin>
 
 			<plugin>
 				<artifactId>maven-clean-plugin</artifactId>
@@ -191,22 +200,7 @@
 				</configuration>
 			</plugin>
 
-        	<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>doxygen-maven-plugin</artifactId>
-				<version>1.8.20</version>
-				<configuration>
-					<doxygenExecutable>/usr/bin/doxygen</doxygenExecutable>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>site</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+        	
     
 		</plugins>
 	</build>

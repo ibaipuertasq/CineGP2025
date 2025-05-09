@@ -39,23 +39,13 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
-    - name: Update package list
-      run: sudo apt-get update
-
     - name: Install doxygen dependecies
       run: sudo apt-get install -y doxygen
 
-    - name: Verify Doxygen installation
-      run: which doxygen
-
     - name: Generate Doxygen documentation
-      run: doxygen Doxyfile
-
-    - name: Check Doxygen output
-      run: ls -la target/doxygen/html || echo "Doxygen output not found"
+      run: mvn doxygen:report
 
     - name: Deploy
-      if: success() && steps.generate-docs.outputs.exists == 'true'
       uses: JamesIves/github-pages-deploy-action@v4
       with:
         folder: target/doxygen/html
