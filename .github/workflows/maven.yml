@@ -49,10 +49,13 @@ jobs:
       run: which doxygen
 
     - name: Generate Doxygen documentation
-      run: |
-        mvn doxygen:report || echo "Skipping documentation generation due to missing plugin"
+      run: doxygen Doxyfile
+
+    - name: Check Doxygen output
+      run: ls -la target/doxygen/html || echo "Doxygen output not found"
 
     - name: Deploy
+      if: success() && steps.generate-docs.outputs.exists == 'true'
       uses: JamesIves/github-pages-deploy-action@v4
       with:
         folder: target/doxygen/html
