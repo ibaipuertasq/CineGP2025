@@ -13,5 +13,3 @@ GRANT ALL ON cineDB.* TO 'spq'@'localhost';
 
 USE cineDB;
 SHOW TABLES;
-
-SELECT * FROM usuario;
