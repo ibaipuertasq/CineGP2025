@@ -194,7 +194,10 @@
         	<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>doxygen-maven-plugin</artifactId>
-				<version>1.8.20</version> <!-- Cambia a la versión que necesites -->
+				<version>1.8.20</version>
+				<configuration>
+					<doxygenExecutable>/usr/bin/doxygen</doxygenExecutable>
+				</configuration>
 				<executions>
 					<execution>
 						<phase>site</phase>
@@ -312,4 +315,16 @@
             </build>
         </profile>
 	</profiles>
+
+	<repositories>
+		<repository>
+			<id>central</id>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</repository>
+		<repository>
+			<id>codehaus-mojo</id>
+			<url>https://repository.codehaus.org</url>
+		</repository>
+	</repositories>
+
 </project>
