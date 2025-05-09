@@ -191,7 +191,20 @@
 				</configuration>
 			</plugin>
 
-	
+        	<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>doxygen-maven-plugin</artifactId>
+				<version>1.8.20</version> <!-- Cambia a la versión que necesites -->
+				<executions>
+					<execution>
+						<phase>site</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+    
 		</plugins>
 	</build>
 
