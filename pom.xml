@@ -11,6 +11,7 @@
 	<name>CineGP2025</name>
 
 	<properties>
+		<doxygen.config.file>${basedir}/target/doxygen/Doxyfile</doxygen.config.file>
 		<maven.compiler.release>8</maven.compiler.release>
 		<config.files.dir>${basedir}/src/main/resources</config.files.dir>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -131,6 +132,14 @@
 		</resources>
 
 		<plugins>
+			<plugin>
+				<groupId>com.soebes.maven.plugins</groupId>
+				<artifactId>doxygen-maven-plugin</artifactId>
+				<version>1.13.2</version>
+				<configuration>
+					<configurationFile>${doxygen.config.file}</configurationFile>
+				</configuration>
+			</plugin>
 
 			<plugin>
 				<artifactId>maven-clean-plugin</artifactId>
@@ -226,27 +235,9 @@
 					<nohelp>true</nohelp>
 				</configuration>
 			</plugin>
-			
-			<plugin>
-    			<groupId>org.jacoco</groupId>
-    			<artifactId>jacoco-maven-plugin</artifactId>
-    			<version>0.8.12</version>
-    			<executions>
-        		<execution>
-            	<goals>
-                	<goal>prepare-agent</goal>
-            	</goals>
-        		</execution>
-        			<execution>
-            			<id>report</id>
-            			<phase>test</phase>
-            			<goals>
-                			<goal>report</goal>
-            			</goals>
-        			</execution>
-    			</executions>
-			</plugin>
-	
+
+        	
+    
 		</plugins>
 	</build>
 
@@ -353,4 +344,16 @@
             </build>
         </profile>
 	</profiles>
+
+	<repositories>
+		<repository>
+			<id>central</id>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</repository>
+		<repository>
+			<id>codehaus-mojo</id>
+			<url>https://repository.codehaus.org</url>
+		</repository>
+	</repositories>
+
 </project>

@@ -13,7 +13,3 @@ GRANT ALL ON cineDB.* TO 'spq'@'localhost';
 
 USE cineDB;
 SHOW TABLES;
-
-SELECT * FROM pelicula;
-INSERT INTO Usuario (dni, nombre, apellidos, email, nombreUsuario, contrasenya, direccion, telefono, tipoUsuario) 
-VALUES ('44444444A', 'spq', 'spq', 'spq@gmail.com', 'spq', 'spq', 'spq', '611111111', 'ADMINISTRADOR');
