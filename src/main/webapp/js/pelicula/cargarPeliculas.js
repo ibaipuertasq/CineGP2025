@@ -3,8 +3,13 @@ const peliculasUrlParams = new URLSearchParams(window.location.search);
 const peliculasUserId = peliculasUrlParams.get('nombreUsuario');
 
 // Cargar películas al iniciar la página
-document.addEventListener('DOMContentLoaded', function() {
-    listarPeliculas();
+document.addEventListener('DOMContentLoaded', () => {
+    const tablaBody = document.getElementById('tablaPeliculasBody');
+    if (tablaBody) {
+        listarPeliculas();
+    } else {
+        console.error("El elemento con ID 'tablaPeliculasBody' no existe en el DOM.");
+    }
 });
 
 // Función para listar todas las películas

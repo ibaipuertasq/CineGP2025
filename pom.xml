@@ -132,15 +132,7 @@
 		</resources>
 
 		<plugins>
-			<plugin>
-				<groupId>com.soebes.maven.plugins</groupId>
-				<artifactId>doxygen-maven-plugin</artifactId>
-				<version>1.13.2</version>
-				<configuration>
-					<configurationFile>${doxygen.config.file}</configurationFile>
-				</configuration>
-			</plugin>
-
+			
 			<plugin>
 				<artifactId>maven-clean-plugin</artifactId>
 				<version>3.2.0</version>
@@ -193,14 +185,14 @@
 					<!-- option required to avoid 'The command line is too long.' error in Windows -->
 					<fork>false</fork>
 				</configuration>
-				<!-- <executions>
-        			<execution>
-            			<phase>process-classes</phase>
-            			<goals>
-                			<goal>enhance</goal>
-            			</goals>
-        			</execution>
-    			</executions> -->
+				<executions>
+					<execution>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>enhance</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
 			<plugin>
@@ -349,10 +341,6 @@
 		<repository>
 			<id>central</id>
 			<url>https://repo.maven.apache.org/maven2</url>
-		</repository>
-		<repository>
-			<id>codehaus-mojo</id>
-			<url>https://repository.codehaus.org</url>
 		</repository>
 	</repositories>
 
