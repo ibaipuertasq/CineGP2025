@@ -48,3 +48,7 @@ Pruebas de Rendimiento:
 To launch the web client open the link:
 
 http://localhost:8080
+
+If you want to see the documentation cretaed by doxygen, run the following command:
+
+      mvn  doxygen:report
