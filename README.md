@@ -45,6 +45,10 @@ Pruebas de Rendimiento:
 
       mvn clean verify -Pperformance-tests
 
+Para ejecutar todo y generar un informe completo con jacoco:
+
+      mvn clean verify
+
 To launch the web client open the link:
 
 http://localhost:8080
