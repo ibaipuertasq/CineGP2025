@@ -1742,6 +1742,7 @@ public Response getEntradas(@PathParam("nombreUsuario") String nombreUsuario) {
 		}
 	}
 
+		
 	@PUT
 	@Path("/actualizarSala/{salaId}")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -1752,53 +1753,44 @@ public Response getEntradas(@PathParam("nombreUsuario") String nombreUsuario) {
 			if (sala == null) {
 				return Response.status(Response.Status.NOT_FOUND).entity("Sala no encontrada").build();
 			}
-	
+
+			// Obtener la nueva capacidad desde los datos
 			int nuevaCapacidad = (int) datos.get("capacidad");
-			List<Asiento> asientosActuales = new ArrayList<>();
-			asientosActuales.addAll(sala.getAsientos());
-	
-			// Si la nueva capacidad es mayor, agregar nuevos asientos
-			if (nuevaCapacidad > asientosActuales.size()) {
-				for (int i = asientosActuales.size() + 1; i <= nuevaCapacidad; i++) {
+
+			// Obtener los asientos actualizados desde los datos
+			@SuppressWarnings("unchecked")
+			List<Map<String, Object>> asientosActualizadosData = (List<Map<String, Object>>) datos.get("asientos");
+			List<Asiento> asientosActualizados = new ArrayList<>();
+
+			// Convertir los datos de los asientos en objetos Asiento
+			for (Map<String, Object> asientoData : asientosActualizadosData) {
+				int numero = (int) asientoData.get("numero");
+				TipoAsiento tipo = TipoAsiento.valueOf((String) asientoData.get("tipo"));
+				boolean ocupado = (boolean) asientoData.get("ocupado");
+
+				Asiento asiento = new Asiento(0, numero, tipo, ocupado);
+				asientosActualizados.add(asiento);
+			}
+
+			// Validar la capacidad y ajustar los asientos si es necesario
+			if (nuevaCapacidad > asientosActualizados.size()) {
+				for (int i = asientosActualizados.size() + 1; i <= nuevaCapacidad; i++) {
 					TipoAsiento tipo = (i % 10 == 0) ? TipoAsiento.VIP : TipoAsiento.NORMAL;
 					Asiento nuevoAsiento = new Asiento(0, i, tipo, false); // Asientos inicialmente libres
-					asientosActuales.add(nuevoAsiento);
+					asientosActualizados.add(nuevoAsiento);
 				}
-			} 
-			// Si la nueva capacidad es menor, eliminar asientos desocupados
-			else if (nuevaCapacidad < asientosActuales.size()) {
-				// Filtrar los asientos desocupados
-				List<Asiento> asientosDesocupados = new ArrayList<>();
-				for (Asiento asiento : asientosActuales) {
-					if (!asiento.isOcupado()) {
-						asientosDesocupados.add(asiento);
-					}
-				}
-	
-				// Verificar si hay suficientes asientos desocupados para eliminar
-				int asientosAEliminar = asientosActuales.size() - nuevaCapacidad;
-				if (asientosDesocupados.size() < asientosAEliminar) {
-					return Response.status(Response.Status.BAD_REQUEST)
-							.entity("No se pueden reducir los asientos porque algunos están ocupados").build();
-				}
-	
-				// Eliminar los asientos desocupados necesarios
-				for (int i = 0; i < asientosAEliminar; i++) {
-					Asiento asientoAEliminar = asientosDesocupados.get(i);
-					asientosActuales.remove(asientoAEliminar);
-					pm.deletePersistent(asientoAEliminar); // Eliminar el asiento de la base de datos
-				}
+			} else if (nuevaCapacidad < asientosActualizados.size()) {
+				asientosActualizados = asientosActualizados.subList(0, nuevaCapacidad);
 			}
-	
-			// Actualizar la capacidad de la sala
+
+			// Actualizar la sala con la nueva capacidad y los asientos actualizados
 			sala.setCapacidad(nuevaCapacidad);
-			sala.setAsientos(asientosActuales);
-	
+			sala.setAsientos(asientosActualizados);
+
 			return Response.ok("Sala actualizada correctamente").build();
 		} catch (Exception e) {
 			logger.error("Error al actualizar la sala: {}", e.getMessage());
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al actualizar la sala").build();
 		}
 	}
-
 }

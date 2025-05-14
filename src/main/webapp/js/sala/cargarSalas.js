@@ -79,6 +79,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = `sala/agregarSala.html?nombreUsuario=${userId}`;
     });
 
+    document.getElementById('btnEstadisticasSalas').addEventListener('click', () => {
+        const userId = new URLSearchParams(window.location.search).get('nombreUsuario'); // Obtén el nombreUsuario de la URL actual
+        window.location.href = `sala/estadisticasSalas.html?nombreUsuario=${userId}`;
+    });
+
     // Cargar las salas al cargar la página
     cargarSalas();
 });

@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             });
-    
+
             if (response.ok) {
                 const sala = await response.json();
                 document.getElementById('capacidadSala').value = sala.capacidad; // Mostrar la capacidad actual
@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // Cargar los asientos de la sala
     const cargarAsientos = async () => {
         try {
             const response = await fetch(`/rest/resource/getAsientos/${salaId}`, {
@@ -50,9 +49,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         asientoElement.classList.add('ocupado');
                     }
 
+                    // Evento para cambiar el estado del asiento
                     asientoElement.addEventListener('click', () => {
-                        asiento.ocupado = !asiento.ocupado;
-                        asientoElement.classList.toggle('ocupado');
+                        asiento.ocupado = !asiento.ocupado; // Cambiar el estado en el objeto
+                        asientoElement.classList.toggle('ocupado'); // Cambiar el estado visual
                     });
 
                     filasAsientos.appendChild(asientoElement);
@@ -65,32 +65,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
-    // Guardar los cambios en los asientos
     const guardarCambios = async () => {
         try {
             const nuevaCapacidad = parseInt(document.getElementById('capacidadSala').value, 10);
-    
+
+            // Si la nueva capacidad es menor, elimina los últimos asientos
+            if (nuevaCapacidad < asientos.length) {
+                asientos = asientos.slice(0, nuevaCapacidad);
+            }
+
+            // Enviar los cambios al servidor
             const response = await fetch(`/rest/resource/actualizarSala/${salaId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ capacidad: nuevaCapacidad, asientos })
             });
-    
+
             if (response.ok) {
                 alert('Cambios guardados correctamente.');
                 const nombreUsuario = new URLSearchParams(window.location.search).get('nombreUsuario');
                 window.location.href = `../administrador.html?nombreUsuario=${nombreUsuario}`;
             } else {
                 console.error('Error al guardar los cambios:', await response.text());
+                alert('Error al guardar los cambios.');
             }
         } catch (error) {
             console.error('Error al conectar con el servidor:', error);
+            alert('Error al conectar con el servidor.');
         }
     };
 
+    // Configurar el botón "Guardar Cambios"
     document.getElementById('btnGuardarCambios').addEventListener('click', guardarCambios);
 
-    // Cargar los asientos al cargar la página
+    // Cargar la sala y los asientos al cargar la página
     cargarSala();
     cargarAsientos();
 });

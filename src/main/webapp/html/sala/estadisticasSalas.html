@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas de Ocupación por Sala</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="../../css/salas.css">
+    <link rel="stylesheet" href="../../css/administrador.css">
+    <link rel="stylesheet" href="../../css/estadisticasSalas.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <div class="logo">
+                <h1>CineGP</h1>
+            </div>
+            <nav class="nav-links">
+                <a href="../cliente.html?nombreUsuario=NOMBRE_PLACEHOLDER">Cartelera</a>
+                <a href="../cliente.html?nombreUsuario=NOMBRE_PLACEHOLDER#entradas">Mis Entradas</a>
+            </nav>
+            <div class="dropdown">
+                <button class="dropbtn">
+                    <span class="material-icons">account_circle</span>
+                    <span class="user-name" id="userName">Usuario</span>
+                </button>
+                <div class="dropdown-content">
+                    <button type="button" id="editarUsuario">Cambiar contraseña</button>
+                    <a href="../../index.html">Cerrar sesión</a>
+                </div>
+            </div>
+        </div>
+        <h1>Estadísticas de Ocupación por Sala</h1>
+    </header>
+    <main>
+        <table id="tablaEstadisticas">
+            <thead>
+                <tr>
+                    <th>Número de Sala</th>
+                    <th>Capacidad</th>
+                    <th>Asientos Ocupados</th>
+                    <th>Porcentaje de Ocupación</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Aquí se llenarán los datos dinámicamente -->
+            </tbody>
+        </table>
+        <!-- Botón para volver al administrador -->
+        <div class="volver-container">
+            <button id="btnVolver">Volver al Administrador</button>
+        </div>
+    </main>
+    <script src="../../js/sala/estadisticasSalas.js"></script>
+</body>
+</html>
