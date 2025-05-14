@@ -2,10 +2,13 @@ package org.datanucleus.jdo;
 
 import static org.junit.Assert.*;
 
+import org.datanucleus.categories.UnitTest;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import es.deusto.spq.server.jdo.TipoUsuario;
 
+@Category(UnitTest.class)
 public class TipoUsuarioTest {
 
     @Test

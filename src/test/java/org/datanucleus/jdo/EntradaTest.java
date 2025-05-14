@@ -3,8 +3,10 @@ package org.datanucleus.jdo;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import org.datanucleus.categories.UnitTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -14,6 +16,7 @@ import es.deusto.spq.server.jdo.TipoAsiento;
 import es.deusto.spq.server.jdo.Usuario;
 
 @RunWith(MockitoJUnitRunner.class)
+@Category(UnitTest.class)
 public class EntradaTest {
 
     private Entrada entrada;

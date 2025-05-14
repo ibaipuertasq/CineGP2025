@@ -1,11 +1,10 @@
 package org.datanucleus.jdo;
 
-
 import static org.junit.Assert.*;
-
 import org.junit.Test;
 
 import es.deusto.spq.server.jdo.TipoAsiento;
+
 
 public class TipoAsientoTest {
 

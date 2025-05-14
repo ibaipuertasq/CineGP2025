@@ -3,14 +3,17 @@ package org.datanucleus.jdo;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import org.datanucleus.categories.UnitTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import es.deusto.spq.server.jdo.Usuario;
 import es.deusto.spq.server.jdo.TipoUsuario; // Add this import for TipoUsuario
 
+@Category(UnitTest.class)
 @RunWith(MockitoJUnitRunner.class)
 public class UsuarioTest {
 

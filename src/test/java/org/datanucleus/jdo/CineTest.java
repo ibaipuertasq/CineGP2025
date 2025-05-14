@@ -5,8 +5,11 @@ import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.datanucleus.categories.UnitTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -14,6 +17,7 @@ import es.deusto.spq.server.jdo.Cine;
 import es.deusto.spq.server.jdo.Sala;
 
 @RunWith(MockitoJUnitRunner.class)
+@Category(UnitTest.class)
 public class CineTest {
 
     private Cine cine;

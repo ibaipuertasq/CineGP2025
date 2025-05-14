@@ -4,8 +4,11 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
+
+import org.datanucleus.categories.UnitTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -13,6 +16,7 @@ import es.deusto.spq.server.jdo.Asiento;
 import es.deusto.spq.server.jdo.Sala;
 
 @RunWith(MockitoJUnitRunner.class)
+@Category(UnitTest.class)
 public class SalaTest {
 
     private Sala sala;
