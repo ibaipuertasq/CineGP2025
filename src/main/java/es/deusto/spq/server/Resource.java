@@ -1,6 +1,8 @@
 package es.deusto.spq.server;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import java.util.HashMap;
@@ -11,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.twilio.Twilio;
 
 import javax.jdo.JDOHelper;
 import javax.jdo.PersistenceManager;
@@ -32,13 +35,16 @@ import es.deusto.spq.server.jdo.Usuario;
 import es.deusto.spq.server.jdo.Asiento;
 import es.deusto.spq.server.jdo.Cine;
 import es.deusto.spq.server.jdo.Entrada;
+import es.deusto.spq.server.jdo.Mensaje;
 import es.deusto.spq.server.jdo.Pelicula;
 import es.deusto.spq.server.jdo.Resenya;
 import es.deusto.spq.server.jdo.Sala;
 import es.deusto.spq.server.jdo.TipoAsiento;
 import es.deusto.spq.server.jdo.TipoUsuario;
 
-
+import com.twilio.Twilio;
+import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.type.PhoneNumber;
 
 
 @Path("/resource")
@@ -55,9 +61,11 @@ public class Resource {
 	public static Usuario usuario;
 	public static Usuario usuario2;
 
+	// public static String recoveryCode = "JTRPEYE5LM2LQNJSVWE3K5NU";
+
 	// Credenciales de Twilio
-	public static final String ACCOUNT_SID = System.getenv("TWILIO_ACCOUNT_SID");
-	public static final String AUTH_TOKEN = System.getenv("TWILIO_AUTH_TOKEN");
+	public static final String ACCOUNT_SID = "AC7ef1ed1b261d35cc14e53ea6d46b48c0";
+  	public static final String AUTH_TOKEN = "92b53b662ff5711cd321223c9ff1b76b";
 
 	public Resource() {
 		PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
@@ -1546,9 +1554,44 @@ public Response getEntradas(@PathParam("nombreUsuario") String nombreUsuario) {
 				// Persistir la entrada
 				pmTemp.makePersistent(entrada);
 				entradasCreadas.add(entrada);
-				
+								
 				logger.info("Entrada creada: {}", entrada);
 			}
+			List<Integer> asientosComprados = new ArrayList<>();
+			for (AsientoDTO asiento : compraDTO.getAsientos()) {
+				asientosComprados.add(asiento.getNumero());
+			}
+
+			Mensaje mensaje = new Mensaje();
+			String telefono = usuario.getTelefono();
+			if (!telefono.startsWith("+34")) {
+				telefono = "+34" + telefono;
+			}
+			mensaje.setTelefono(telefono);
+
+			int diasASumar = 2;
+			LocalDate fechaPelicula = LocalDate.now().plusDays(diasASumar);
+			String diaPelicula = fechaPelicula.format(DateTimeFormatter.ofPattern("d"));
+
+			String texto;
+			if (asientosComprados.size() == 1) {
+				texto = "¡Hola! Has comprado 1 entrada en CineGP para la película: "
+					+ pelicula.getTitulo()
+					+ " el día " + diaPelicula + " a las " + (compraDTO.getHorario() != null ? compraDTO.getHorario() : "Horario no especificado")
+					+ ", en la sala: " + sala.getNumero()
+					+ ". Tu asiento es el " + asientosComprados
+					+ ". ¡Disfruta de la película!";
+			} else {
+				texto = "¡Hola! Has comprado " + asientosComprados.size() + " entradas en CineGP para la película: "
+					+ pelicula.getTitulo()
+					+ " el día " + diaPelicula + " a las " + (compraDTO.getHorario() != null ? compraDTO.getHorario() : "Horario no especificado")
+					+ ", en la sala: " + sala.getNumero()
+					+ ". Tus asientos son: " + asientosComprados
+					+ ". ¡Disfruta de la película!";
+			}
+
+			mensaje.setMensaje(texto);
+			sendMSG(mensaje);
 			
 			txTemp.commit();
 			
@@ -1573,6 +1616,26 @@ public Response getEntradas(@PathParam("nombreUsuario") String nombreUsuario) {
 			}
 		}
 	}
+	@POST
+	@Path("/sendMSG")
+	public Response sendMSG(Mensaje mensaje) {
+		Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+		try {
+			@SuppressWarnings("unused")
+			Message message = Message.creator(
+					new PhoneNumber("whatsapp:" + mensaje.getTelefono()),
+					new PhoneNumber("whatsapp:+14155238886"), // Este es el número de Twilio sandbox para WhatsApp
+					mensaje.getMensaje())
+					.create();
+
+			logger.info("Msg sended to: {}", mensaje.getTelefono());
+			return Response.ok().build();
+		} catch (Exception e) {
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error sending message").build();
+		}
+	}
+
+	
 	
 	/**
 	 * Endpoint para cancelar una entrada
