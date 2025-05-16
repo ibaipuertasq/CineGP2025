@@ -33,7 +33,7 @@ jobs:
     - name: Prepare database for integration tests
       run: | 
         sudo /etc/init.d/mysql start
-        mysql -uroot -proot < sql/cineDB.sql
+        mysql -uroot -proot < sql/eventosDB.sql
         mvn --batch-mode --update-snapshots compile datanucleus:enhance datanucleus:schema-create
 
     - name: Build with Maven
@@ -42,24 +42,8 @@ jobs:
     - name: Install doxygen dependecies
       run: sudo apt-get install -y doxygen
 
-    - name: Generate Doxyfile
-      run: |
-        mkdir -p target/doxygen
-        doxygen -g target/doxygen/Doxyfile
-
-    - name: Configure Doxyfile
-      run: |
-        sed -i 's|OUTPUT_DIRECTORY       =|OUTPUT_DIRECTORY       = target/doxygen|' target/doxygen/Doxyfile
-        sed -i 's|GENERATE_HTML          = NO|GENERATE_HTML          = YES|' target/doxygen/Doxyfile
-        sed -i 's|HTML_OUTPUT            = html|HTML_OUTPUT            = html|' target/doxygen/Doxyfile
-        sed -i 's|INPUT                  =|INPUT                  = src/main/java|' target/doxygen/Doxyfile
-        sed -i 's|RECURSIVE              = NO|RECURSIVE              = YES|' target/doxygen/Doxyfile
-
-    - name: Check Doxyfile
-      run: ls -la target/doxygen/Doxyfile || echo "Doxyfile not found"
-
     - name: Generate Doxygen documentation
-      run: doxygen target/doxygen/Doxyfile
+      run: mvn doxygen:report
 
     - name: Deploy
       uses: JamesIves/github-pages-deploy-action@v4

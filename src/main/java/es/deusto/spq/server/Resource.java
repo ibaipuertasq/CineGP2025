@@ -42,7 +42,7 @@ import es.deusto.spq.server.jdo.Sala;
 import es.deusto.spq.server.jdo.TipoAsiento;
 import es.deusto.spq.server.jdo.TipoUsuario;
 
-import com.twilio.Twilio;
+
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 
