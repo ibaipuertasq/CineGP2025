@@ -63,7 +63,10 @@ Construir y arrancar los servicios (crea y arranca contendedores):
 
 
 Inicializar base de datos
-      docker-compose exec database mysql -uroot -proot cineDB < src/main/resources/cineDB.sql
+      docker-compose exec database mysql -uroot -proot cineDB < sql/cineDB.sql
+
+en caso de que no funcione, usar:
+      docker-compose exec database cmd /c "mysql -uroot -proot cineDB < sql/cineDB.sql"
 
 Parar todo:
       docker-compose down
