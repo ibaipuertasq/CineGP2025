@@ -56,3 +56,21 @@ http://localhost:8080
 If you want to see the documentation cretaed by doxygen, run the following command:
 
       mvn  doxygen:report
+
+
+Construir y arrancar los servicios (crea y arranca contendedores):
+      docker-compose up --build -d
+
+
+Inicializar base de datos
+      docker-compose exec database mysql -uroot -proot cineDB < src/main/resources/cineDB.sql
+
+Parar todo:
+      docker-compose down
+
+Ver logs:
+      docker-compose logs -f
+
+
+Construir y arrancar todo:
+      docker-compose up --build
