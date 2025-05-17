@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informes de Ventas - CineGP</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="../../css/administrador.css">
+    <link rel="stylesheet" href="../../css/informesVentas.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <div class="logo">
+                <h1>CineGP</h1>
+            </div>
+            <nav class="nav-links">
+                <a href="../administrador.html" id="volverAdmin">Volver a Administrador</a>
+            </nav>
+            <div class="dropdown">
+                <button class="dropbtn">
+                    <span class="material-icons">account_circle</span>
+                    <span class="user-name" id="userName">Usuario</span>
+                </button>
+                <div class="dropdown-content">
+                    <button type="button" id="editarUsuario">Cambiar contraseña</button>
+                    <a href="../../index.html">Cerrar sesión</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="hero-section">
+        <div class="hero-container">
+            <div id="titulo">
+                <h1>Informes de Ventas</h1>
+                <p>Analice las ventas de su cine con detalle. Vea los datos por películas, tipos de asientos y periodos de tiempo.</p>
+            </div>
+        </div>
+    </div>
+
+    <main class="main-content">
+        <section id="resumen" class="section">
+            <div class="section-header">
+                <h2>Resumen General</h2>
+                <p>Información global sobre las ventas realizadas en su cine.</p>
+            </div>
+            <div class="resumen-container" id="resumenContainer">
+                <!-- Se llenará dinámicamente -->
+                <div class="resumen-card">
+                    <div class="resumen-titulo">Total Entradas</div>
+                    <div class="resumen-valor" id="totalEntradas">-</div>
+                </div>
+                <div class="resumen-card">
+                    <div class="resumen-titulo">Total Ingresos</div>
+                    <div class="resumen-valor" id="totalIngresos">-</div>
+                </div>
+                <div class="resumen-card">
+                    <div class="resumen-titulo">Precio Promedio</div>
+                    <div class="resumen-valor" id="promedioPrecio">-</div>
+                </div>
+                <div class="resumen-card">
+                    <div class="resumen-titulo">Clientes Únicos</div>
+                    <div class="resumen-valor" id="clientesUnicos">-</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="graficosPrincipales" class="section">
+            <div class="section-header">
+                <h2>Informes Gráficos</h2>
+                <p>Visualice sus datos de ventas en gráficos interactivos.</p>
+            </div>
+            <div class="charts-section">
+                <div class="chart-box">
+                    <div class="chart-title">Ventas por Película</div>
+                    <canvas id="chartPeliculas"></canvas>
+                </div>
+                <div class="chart-box">
+                    <div class="chart-title">Ventas por Tipo de Asiento</div>
+                    <canvas id="chartTipoAsiento"></canvas>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">Ventas por Día</div>
+                <canvas id="chartPorDia"></canvas>
+            </div>
+        </section>
+
+        <section id="tablasDatos" class="section">
+            <div class="section-header">
+                <h2>Datos Detallados</h2>
+                <p>Consulte los datos completos en formato tabular.</p>
+            </div>
+            <div class="btn-container">
+                <button class="btn-filtro active" data-tabla="tablaPeliculas">Por Películas</button>
+                <button class="btn-filtro" data-tabla="tablaTipoAsiento">Por Tipo de Asiento</button>
+                <button class="btn-filtro" data-tabla="tablaPorDia">Por Día</button>
+            </div>
+            <div class="tablas-container">
+                <div class="tabla-box" id="tablaPeliculas">
+                    <div class="tabla-title">Ventas por Película</div>
+                    <div class="table-container">
+                        <table class="content-table">
+                            <thead>
+                                <tr>
+                                    <th>Película</th>
+                                    <th>Sala</th>
+                                    <th>Entradas Vendidas</th>
+                                    <th>Ingresos</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaPeliculasBody">
+                                <!-- Se llenará dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="tabla-box" id="tablaTipoAsiento" style="display: none;">
+                    <div class="tabla-title">Ventas por Tipo de Asiento</div>
+                    <div class="table-container">
+                        <table class="content-table">
+                            <thead>
+                                <tr>
+                                    <th>Tipo de Asiento</th>
+                                    <th>Entradas Vendidas</th>
+                                    <th>Ingresos</th>
+                                    <th>Precio Promedio</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaTipoAsientoBody">
+                                <!-- Se llenará dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="tabla-box" id="tablaPorDia" style="display: none;">
+                    <div class="tabla-title">Ventas por Día</div>
+                    <div class="table-container">
+                        <table class="content-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Entradas Vendidas</th>
+                                    <th>Ingresos</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaPorDiaBody">
+                                <!-- Se llenará dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <p>© 2025 CineGP - Tu Cine de Confianza</p>
+        </div>
+    </footer>
+
+    <script src="../../js/informesVentas.js"></script>
+</body>
+</html>

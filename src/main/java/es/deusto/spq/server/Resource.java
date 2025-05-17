@@ -6,8 +6,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -1856,4 +1859,317 @@ public Response getEntradas(@PathParam("nombreUsuario") String nombreUsuario) {
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al actualizar la sala").build();
 		}
 	}
+
+	/**
+	 * Obtiene un resumen de ventas por película
+	 * @return Response con los datos de ventas por película
+	 */
+	@GET
+	@Path("/ventasPorPelicula")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getVentasPorPelicula() {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+		
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+			
+			// Obtener todas las entradas
+			Query<Entrada> queryEntradas = pmTemp.newQuery(Entrada.class);
+			@SuppressWarnings("unchecked")
+			List<Entrada> entradas = (List<Entrada>) queryEntradas.execute();
+			
+			// Obtener todas las películas
+			Query<Pelicula> queryPeliculas = pmTemp.newQuery(Pelicula.class);
+			@SuppressWarnings("unchecked")
+			List<Pelicula> peliculas = (List<Pelicula>) queryPeliculas.execute();
+			
+			// Crear un mapa para almacenar los datos de ventas por película
+			Map<Long, Map<String, Object>> ventasPorPelicula = new HashMap<>();
+			
+			// Inicializar el mapa con todas las películas
+			for (Pelicula pelicula : peliculas) {
+				Map<String, Object> datosPelicula = new HashMap<>();
+				datosPelicula.put("id", pelicula.getId());
+				datosPelicula.put("titulo", pelicula.getTitulo());
+				datosPelicula.put("totalEntradas", 0);
+				datosPelicula.put("totalIngresos", 0);
+				datosPelicula.put("salaId", pelicula.getSala() != null ? pelicula.getSala().getId() : 0);
+				datosPelicula.put("numeroSala", pelicula.getSala() != null ? pelicula.getSala().getNumero() : 0);
+				
+				ventasPorPelicula.put(pelicula.getId(), datosPelicula);
+			}
+			
+			// Recorrer todas las entradas y sumar por película
+			for (Entrada entrada : entradas) {
+				// Para cada entrada, necesitamos encontrar la película asociada
+				// Esto requiere buscar la sala primero y luego la película
+				if (entrada.getCine() != null) {
+					for (Sala sala : entrada.getCine().getSalas()) {
+						// Buscar la película que está en esta sala
+						for (Pelicula pelicula : peliculas) {
+							if (pelicula.getSala() != null && pelicula.getSala().getId() == sala.getId()) {
+								// Esta entrada corresponde a esta película
+								Map<String, Object> datosPelicula = ventasPorPelicula.get(pelicula.getId());
+								if (datosPelicula != null) {
+									int totalEntradas = (int) datosPelicula.get("totalEntradas");
+									int totalIngresos = (int) datosPelicula.get("totalIngresos");
+									
+									datosPelicula.put("totalEntradas", totalEntradas + 1);
+									datosPelicula.put("totalIngresos", totalIngresos + entrada.getPrecio());
+								}
+								break; // Solo puede haber una película por sala
+							}
+						}
+					}
+				}
+			}
+			
+			// Convertir el mapa a una lista para devolver
+			List<Map<String, Object>> resultado = new ArrayList<>(ventasPorPelicula.values());
+			
+			txTemp.commit();
+			return Response.ok(resultado).build();
+			
+		} catch (Exception e) {
+			logger.error("Error al obtener ventas por película: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener ventas por película").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+
+	/**
+	 * Obtiene un resumen de ventas por tipo de asiento
+	 * @return Response con los datos de ventas por tipo de asiento
+	 */
+	@GET
+	@Path("/ventasPorTipoAsiento")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getVentasPorTipoAsiento() {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+		
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+			
+			// Obtener todas las entradas
+			Query<Entrada> queryEntradas = pmTemp.newQuery(Entrada.class);
+			@SuppressWarnings("unchecked")
+			List<Entrada> entradas = (List<Entrada>) queryEntradas.execute();
+			
+			// Crear un mapa para almacenar los datos de ventas por tipo de asiento
+			Map<TipoAsiento, Map<String, Object>> ventasPorTipoAsiento = new HashMap<>();
+			
+			// Inicializar el mapa con todos los tipos de asiento
+			for (TipoAsiento tipo : TipoAsiento.values()) {
+				Map<String, Object> datosTipo = new HashMap<>();
+				datosTipo.put("tipo", tipo.name());
+				datosTipo.put("totalEntradas", 0);
+				datosTipo.put("totalIngresos", 0);
+				
+				ventasPorTipoAsiento.put(tipo, datosTipo);
+			}
+			
+			// Recorrer todas las entradas y sumar por tipo de asiento
+			for (Entrada entrada : entradas) {
+				TipoAsiento tipo = entrada.getTipoAsiento();
+				if (tipo != null) {
+					Map<String, Object> datosTipo = ventasPorTipoAsiento.get(tipo);
+					if (datosTipo != null) {
+						int totalEntradas = (int) datosTipo.get("totalEntradas");
+						int totalIngresos = (int) datosTipo.get("totalIngresos");
+						
+						datosTipo.put("totalEntradas", totalEntradas + 1);
+						datosTipo.put("totalIngresos", totalIngresos + entrada.getPrecio());
+					}
+				}
+			}
+			
+			// Convertir el mapa a una lista para devolver
+			List<Map<String, Object>> resultado = new ArrayList<>(ventasPorTipoAsiento.values());
+			
+			txTemp.commit();
+			return Response.ok(resultado).build();
+			
+		} catch (Exception e) {
+			logger.error("Error al obtener ventas por tipo de asiento: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener ventas por tipo de asiento").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+
+	/**
+	 * Obtiene un resumen de ventas por día
+	 * @return Response con los datos de ventas por día
+	 */
+	@GET
+	@Path("/ventasPorDia")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getVentasPorDia() {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+		
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+			
+			// Obtener todas las entradas
+			Query<Entrada> queryEntradas = pmTemp.newQuery(Entrada.class);
+			@SuppressWarnings("unchecked")
+			List<Entrada> entradas = (List<Entrada>) queryEntradas.execute();
+			
+			// Crear un mapa para almacenar los datos de ventas por día (usando la fecha de estreno de la película como aproximación)
+			Map<String, Map<String, Object>> ventasPorDia = new HashMap<>();
+			
+			// Crear un objeto SimpleDateFormat para formatear las fechas
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			
+			// Obtener todas las películas para buscar sus fechas de estreno
+			Query<Pelicula> queryPeliculas = pmTemp.newQuery(Pelicula.class);
+			@SuppressWarnings("unchecked")
+			List<Pelicula> peliculas = (List<Pelicula>) queryPeliculas.execute();
+			
+			// Usaremos un mapa para relacionar cada sala con su película
+			Map<Long, Pelicula> peliculasPorSala = new HashMap<>();
+			for (Pelicula pelicula : peliculas) {
+				if (pelicula.getSala() != null) {
+					peliculasPorSala.put(pelicula.getSala().getId(), pelicula);
+				}
+			}
+			
+			// Recorrer todas las entradas
+			for (Entrada entrada : entradas) {
+				// Para cada entrada, buscamos la sala y luego la película
+				if (entrada.getCine() != null) {
+					for (Sala sala : entrada.getCine().getSalas()) {
+						Pelicula pelicula = peliculasPorSala.get(sala.getId());
+						if (pelicula != null && pelicula.getFechaEstreno() != null) {
+							String fechaKey = sdf.format(pelicula.getFechaEstreno());
+							
+							// Verificar si ya existe una entrada para esta fecha
+							if (!ventasPorDia.containsKey(fechaKey)) {
+								Map<String, Object> datosDia = new HashMap<>();
+								datosDia.put("fecha", fechaKey);
+								datosDia.put("totalEntradas", 0);
+								datosDia.put("totalIngresos", 0);
+								
+								ventasPorDia.put(fechaKey, datosDia);
+							}
+							
+							// Actualizar los datos de ventas para esta fecha
+							Map<String, Object> datosDia = ventasPorDia.get(fechaKey);
+							int totalEntradas = (int) datosDia.get("totalEntradas");
+							int totalIngresos = (int) datosDia.get("totalIngresos");
+							
+							datosDia.put("totalEntradas", totalEntradas + 1);
+							datosDia.put("totalIngresos", totalIngresos + entrada.getPrecio());
+						}
+					}
+				}
+			}
+			
+			// Convertir el mapa a una lista para devolver
+			List<Map<String, Object>> resultado = new ArrayList<>(ventasPorDia.values());
+			
+			// Ordenar por fecha
+			resultado.sort((a, b) -> ((String) a.get("fecha")).compareTo((String) b.get("fecha")));
+			
+			txTemp.commit();
+			return Response.ok(resultado).build();
+			
+		} catch (Exception e) {
+			logger.error("Error al obtener ventas por día: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener ventas por día").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+
+	/**
+	 * Obtiene un resumen general de ventas
+	 * @return Response con los datos generales de ventas
+	 */
+	@GET
+	@Path("/resumenVentas")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getResumenVentas() {
+		PersistenceManager pmTemp = null;
+		Transaction txTemp = null;
+		
+		try {
+			PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+			pmTemp = pmf.getPersistenceManager();
+			txTemp = pmTemp.currentTransaction();
+			txTemp.begin();
+			
+			// Obtener todas las entradas
+			Query<Entrada> queryEntradas = pmTemp.newQuery(Entrada.class);
+			@SuppressWarnings("unchecked")
+			List<Entrada> entradas = (List<Entrada>) queryEntradas.execute();
+			
+			// Crear un objeto para almacenar el resumen
+			Map<String, Object> resumen = new HashMap<>();
+			resumen.put("totalEntradas", entradas.size());
+			
+			// Calcular el total de ingresos
+			int totalIngresos = 0;
+			for (Entrada entrada : entradas) {
+				totalIngresos += entrada.getPrecio();
+			}
+			resumen.put("totalIngresos", totalIngresos);
+			
+			// Calcular el promedio de precio por entrada
+			double promedioPrecio = entradas.isEmpty() ? 0 : totalIngresos / (double) entradas.size();
+			resumen.put("promedioPrecio", Math.round(promedioPrecio * 100.0) / 100.0);
+			
+			// Obtener el número de usuarios únicos
+			Set<String> usuariosUnicos = new HashSet<>();
+			for (Entrada entrada : entradas) {
+				if (entrada.getUsuario() != null) {
+					usuariosUnicos.add(entrada.getUsuario().getNombreUsuario());
+				}
+			}
+			resumen.put("totalUsuariosUnicos", usuariosUnicos.size());
+			
+			txTemp.commit();
+			return Response.ok(resumen).build();
+			
+		} catch (Exception e) {
+			logger.error("Error al obtener resumen de ventas: {}", e.getMessage());
+			if (txTemp != null && txTemp.isActive()) {
+				txTemp.rollback();
+			}
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error al obtener resumen de ventas").build();
+		} finally {
+			if (pmTemp != null && !pmTemp.isClosed()) {
+				pmTemp.close();
+			}
+		}
+	}
+
 }

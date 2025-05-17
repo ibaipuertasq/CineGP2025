@@ -28,3 +28,11 @@ document.getElementById('botonNuevaPelicula').addEventListener('click', (e) => {
     window.location.href = "../html/pelicula/crearPelicula.html" + "?nombreUsuario=" + userId;
    
 });
+
+// Añadir al final del archivo
+
+document.getElementById('btnInformesVentas').addEventListener('click', (e) => {
+    e.preventDefault();
+    
+    window.location.href = "../html/informes/informesVentas.html" + "?nombreUsuario=" + userId;
+});
