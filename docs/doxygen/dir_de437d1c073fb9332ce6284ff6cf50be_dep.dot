@@ -1,0 +1,12 @@
+digraph "src/main/java/es/deusto/spq/server"
+{
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=FreeSans,fontsize=10,labelfontname=FreeSans,labelfontsize=10];
+  node [fontname=FreeSans,fontsize=10,shape=box,height=0.2,width=0.4];
+  compound=true
+  subgraph clusterdir_7df73947654fe6d5c668d5365112078e {
+    graph [ bgcolor="#edf0f7", pencolor="grey50", label="spq", fontname=FreeSans,fontsize=10 style="filled,dashed", URL="dir_7df73947654fe6d5c668d5365112078e.html",tooltip=""]
+  dir_de437d1c073fb9332ce6284ff6cf50be [label="server", fillcolor="#edf0f7", color="grey25", style="filled,bold", URL="dir_de437d1c073fb9332ce6284ff6cf50be.html",tooltip=""];
+  }
+}
