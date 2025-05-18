@@ -41,8 +41,8 @@ var NAVTREE =
 
 var NAVTREEINDEX =
 [
-"Asiento_8java_source.html"
+"Main_8java_source.html"
 ];
 
-var SYNCONMSG = 'click to disable panel synchronisation';
-var SYNCOFFMSG = 'click to enable panel synchronisation';
+var SYNCONMSG = 'click to disable panel synchronization';
+var SYNCOFFMSG = 'click to enable panel synchronization';
