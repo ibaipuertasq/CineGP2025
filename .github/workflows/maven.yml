@@ -19,6 +19,10 @@ jobs:
 
     permissions:
       contents: write
+    
+    env:
+      DB_URL: jdbc:mysql://127.0.0.1/cineDB?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+
 
     steps:
     - uses: actions/checkout@v4
@@ -60,4 +64,4 @@ jobs:
     - name: Deploy
       uses: JamesIves/github-pages-deploy-action@v4
       with:
-        folder: docs/html
+        folder: docs
