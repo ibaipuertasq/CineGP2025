@@ -29,10 +29,11 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import com.github.noconnor.junitperf.JUnitPerfRule;
-import com.github.noconnor.junitperf.JUnitPerfTest;
 import com.github.noconnor.junitperf.reporting.providers.HtmlReportGenerator;
-
+import com.github.noconnor.junitperf.JUnitPerfTest;
 import es.deusto.spq.server.Main;
+import es.deusto.spq.server.Resource.AsientoDTO;
+import es.deusto.spq.server.Resource.CompraEntradaDTO;
 import es.deusto.spq.server.jdo.Pelicula;
 import es.deusto.spq.server.jdo.Sala;
 import es.deusto.spq.server.jdo.Asiento;
@@ -43,11 +44,13 @@ import es.deusto.spq.server.jdo.Usuario;
 import org.datanucleus.categories.PerformanceTest;
 
 /**
- * Performance tests for the server, testing HTTP endpoints under load with a real database.
+ * Performance tests for the server, testing HTTP endpoints under load with a
+ * real database.
  */
 @Category(PerformanceTest.class)
 public class ServerPerformanceTest {
-    private static final PersistenceManagerFactory pmf = JDOHelper.getPersistenceManagerFactory("datanucleus.properties");
+    private static final PersistenceManagerFactory pmf = JDOHelper
+            .getPersistenceManagerFactory("datanucleus.properties");
 
     private static HttpServer server;
     private WebTarget target;
@@ -87,7 +90,8 @@ public class ServerPerformanceTest {
             List<Usuario> existingUsers = (List<Usuario>) userQuery.execute("12345678A");
             if (existingUsers.isEmpty()) {
                 System.out.println("Persisting test user...");
-                usuario = new Usuario("12345678A", "Test", "User", "test@example.com", "testuser", "password", "Calle 123", "987654321", TipoUsuario.CLIENTE);
+                usuario = new Usuario("12345678A", "Test", "User", "test@example.com", "testuser", "password",
+                        "Calle 123", "987654321", TipoUsuario.CLIENTE);
                 pm.makePersistent(usuario);
             } else {
                 System.out.println("Test user already exists, skipping insertion.");
@@ -117,7 +121,8 @@ public class ServerPerformanceTest {
             List<Pelicula> existingMovies = (List<Pelicula>) movieQuery.execute("Test Movie");
             if (existingMovies.isEmpty()) {
                 System.out.println("Persisting test movie...");
-                pelicula = new Pelicula("Test Movie", "Drama", 120, fecha, "Test Director", "Test Synopsis", "18:00, 20:00", sala);
+                pelicula = new Pelicula("Test Movie", "Drama", 120, fecha, "Test Director", "Test Synopsis",
+                        "18:00, 20:00", sala);
                 pm.makePersistent(pelicula);
             } else {
                 System.out.println("Test movie already exists, skipping insertion.");
@@ -160,8 +165,8 @@ public class ServerPerformanceTest {
         Usuario user = new Usuario("testuser", "password");
 
         Response response = target.path("login")
-            .request(MediaType.APPLICATION_JSON)
-            .post(Entity.entity(user, MediaType.APPLICATION_JSON));
+                .request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(user, MediaType.APPLICATION_JSON));
 
         assertEquals(Family.SUCCESSFUL, response.getStatusInfo().getFamily());
         System.out.println("testLoginUser passed.");
@@ -172,90 +177,92 @@ public class ServerPerformanceTest {
     public void testGetPeliculas() {
         System.out.println("Running testGetPeliculas...");
         Response response = target.path("getPeliculas")
-            .request(MediaType.APPLICATION_JSON)
-            .get();
+                .request(MediaType.APPLICATION_JSON)
+                .get();
 
         assertEquals(Family.SUCCESSFUL, response.getStatusInfo().getFamily());
         System.out.println("testGetPeliculas passed.");
     }
 
-    // @Test
-    // @JUnitPerfTest(threads = 5, durationMs = 1000)
-    // public void testCrearPelicula() throws Exception {
-    //     System.out.println("Running testCrearPelicula...");
+    @Test
+    @JUnitPerfTest(threads = 5, durationMs = 1000)
+    public void testCrearPelicula() throws Exception {
+        System.out.println("Running testCrearPelicula...");
 
-    //     // Create seats for a new sala
-    //     PersistenceManager pm = pmf.getPersistenceManager();
-    //     Transaction tx = pm.currentTransaction();
-    //     try {
-    //         tx.begin();
-    //         List<Asiento> asientos = new ArrayList<>();
-    //         Asiento asiento1 = new Asiento(0, 4, TipoAsiento.NORMAL, false);
-    //         pm.makePersistent(asiento1);
-    //         asientos.add(asiento1);
-    //         Asiento asiento2 = new Asiento(0, 5, TipoAsiento.VIP, false);
-    //         pm.makePersistent(asiento2);
-    //         asientos.add(asiento2);
-    //         Asiento asiento3 = new Asiento(0, 6, TipoAsiento.DISCAPACITADOS, false);
-    //         pm.makePersistent(asiento3);
-    //         asientos.add(asiento3);
+        // Create seats for a new sala
+        PersistenceManager pm = pmf.getPersistenceManager();
+        Transaction tx = pm.currentTransaction();
+        try {
+            tx.begin();
+            List<Asiento> asientos = new ArrayList<>();
+            Asiento asiento1 = new Asiento(0, 4, TipoAsiento.NORMAL, false);
+            pm.makePersistent(asiento1);
+            asientos.add(asiento1);
+            Asiento asiento2 = new Asiento(0, 5, TipoAsiento.VIP, false);
+            pm.makePersistent(asiento2);
+            asientos.add(asiento2);
+            Asiento asiento3 = new Asiento(0, 6, TipoAsiento.DISCAPACITADOS, false);
+            pm.makePersistent(asiento3);
+            asientos.add(asiento3);
 
-    //         // Create a new sala (without associating it with a Cine)
-    //         Sala nuevaSala = new Sala(0, 7, 3, asientos, true);
-    //         pm.makePersistent(nuevaSala);
+            // Create a new sala (without associating it with a Cine)
+            Sala nuevaSala = new Sala(0, 7, 3, asientos, true);
+            pm.makePersistent(nuevaSala);
 
-    //         // Create a new movie
-    //         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    //         Date nuevaFecha = dateFormat.parse("2025-05-01");
-    //         Pelicula nuevaPelicula = new Pelicula("New Movie", "Action", 110, nuevaFecha, "New Director", "New Synopsis", "20:00", nuevaSala);
+            // Create a new movie
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date nuevaFecha = dateFormat.parse("2025-05-01");
+            Pelicula nuevaPelicula = new Pelicula("New Movie", "Action", 110, nuevaFecha,
+                    "New Director", "New Synopsis", "20:00", nuevaSala);
 
-    //         tx.commit();
+            tx.commit();
 
-    //         // Send the request to the endpoint
-    //         Response response = target.path("crearPelicula")
-    //             .request(MediaType.APPLICATION_JSON)
-    //             .post(Entity.entity(nuevaPelicula, MediaType.APPLICATION_JSON));
+            // Send the request to the endpoint
+            Response response = target.path("crearPelicula")
+                    .request(MediaType.APPLICATION_JSON)
+                    .post(Entity.entity(nuevaPelicula, MediaType.APPLICATION_JSON));
 
-    //         assertEquals(Family.SUCCESSFUL, response.getStatusInfo().getFamily());
-    //         System.out.println("testCrearPelicula passed.");
-    //     } finally {
-    //         if (tx.isActive()) {
-    //             tx.rollback();
-    //         }
-    //         pm.close();
-    //     }
-    // }
+            assertEquals(Family.SUCCESSFUL, response.getStatusInfo().getFamily());
+            System.out.println("testCrearPelicula passed.");
+        } finally {
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            pm.close();
+        }
+    }
 
     // Commented out due to dependency on Cine, which causes SALAS_ID_OWN error
     /*
-    @Test
-    @JUnitPerfTest(threads = 5, durationMs = 1000)
-    public void testComprarEntradas() {
-        System.out.println("Running testComprarEntradas...");
-
-        // Prepare data for the purchase
-        Resource.CompraEntradaDTO compraDTO = new Resource.CompraEntradaDTO();
-        compraDTO.setNombreUsuario("testuser");
-        compraDTO.setCineId(cine.getId()); // This requires a Cine, causing the error
-        compraDTO.setPeliculaId(pelicula.getId());
-        compraDTO.setHorario("18:00, 20:00");
-        List<Resource.AsientoDTO> asientosDTO = new ArrayList<>();
-        Resource.AsientoDTO asientoDTO = new Resource.AsientoDTO();
-        asientoDTO.setNumero(1);
-        asientoDTO.setTipo(TipoAsiento.NORMAL);
-        asientoDTO.setPrecio(10);
-        asientosDTO.add(asientoDTO);
-        compraDTO.setAsientos(asientosDTO);
-        compraDTO.setMetodoPago("Tarjeta");
-        compraDTO.setPrecioTotal(10);
-
-        // Send the request to the endpoint
-        Response response = target.path("comprarEntradas")
-            .request(MediaType.APPLICATION_JSON)
-            .post(Entity.entity(compraDTO, MediaType.APPLICATION_JSON));
-
-        assertEquals(Family.SUCCESSFUL, response.getStatusInfo().getFamily());
-        System.out.println("testComprarEntradas passed.");
-    }
-    */
+     * @Test
+     * 
+     * @JUnitPerfTest(threads = 5, durationMs = 1000)
+     * public void testComprarEntradas() {
+     * System.out.println("Running testComprarEntradas...");
+     * 
+     * // Prepare data for the purchase
+     * Resource.CompraEntradaDTO compraDTO = new Resource.CompraEntradaDTO();
+     * compraDTO.setNombreUsuario("testuser");
+     * compraDTO.setCineId(cine.getId()); // This requires a Cine, causing the error
+     * compraDTO.setPeliculaId(pelicula.getId());
+     * compraDTO.setHorario("18:00, 20:00");
+     * List<Resource.AsientoDTO> asientosDTO = new ArrayList<>();
+     * Resource.AsientoDTO asientoDTO = new Resource.AsientoDTO();
+     * asientoDTO.setNumero(1);
+     * asientoDTO.setTipo(TipoAsiento.NORMAL);
+     * asientoDTO.setPrecio(10);
+     * asientosDTO.add(asientoDTO);
+     * compraDTO.setAsientos(asientosDTO);
+     * compraDTO.setMetodoPago("Tarjeta");
+     * compraDTO.setPrecioTotal(10);
+     * 
+     * // Send the request to the endpoint
+     * Response response = target.path("comprarEntradas")
+     * .request(MediaType.APPLICATION_JSON)
+     * .post(Entity.entity(compraDTO, MediaType.APPLICATION_JSON));
+     * 
+     * assertEquals(Family.SUCCESSFUL, response.getStatusInfo().getFamily());
+     * System.out.println("testComprarEntradas passed.");
+     * }
+     */
 }
