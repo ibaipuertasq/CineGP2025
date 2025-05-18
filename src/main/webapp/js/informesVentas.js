@@ -92,6 +92,9 @@ async function cargarVentasPorPelicula() {
         
         datosPeliculas = await response.json();
         
+        // Filtrar películas sin ventas para mostrar solo datos relevantes
+        datosPeliculas = datosPeliculas.filter(pelicula => pelicula.totalEntradas > 0);
+        
         // Actualizar la tabla de películas
         actualizarTablaPeliculas();
         
@@ -118,6 +121,9 @@ async function cargarVentasPorTipoAsiento() {
         
         datosTipoAsiento = await response.json();
         
+        // Filtrar tipos sin ventas para mostrar solo datos relevantes
+        datosTipoAsiento = datosTipoAsiento.filter(tipo => tipo.totalEntradas > 0);
+        
         // Actualizar la tabla de tipos de asiento
         actualizarTablaTipoAsiento();
         
@@ -143,6 +149,9 @@ async function cargarVentasPorDia() {
         }
         
         datosPorDia = await response.json();
+        
+        // Filtrar días sin ventas para mostrar solo datos relevantes
+        datosPorDia = datosPorDia.filter(dia => dia.totalEntradas > 0);
         
         // Actualizar la tabla de ventas por día
         actualizarTablaPorDia();
@@ -254,201 +263,332 @@ function actualizarTablaPorDia() {
 
 // Función para inicializar los gráficos
 function inicializarGraficos() {
-    // Destruir gráficos existentes para evitar duplicados
+    // Eliminar y reemplazar los elementos canvas para evitar problemas de persistencia
+    reemplazarCanvas('chartPeliculas', 'chart-peliculas-container');
+    reemplazarCanvas('chartTipoAsiento', 'chart-tipoasiento-container');
+    reemplazarCanvas('chartPorDia', 'chart-pordia-container');
+    
+    // Crear gráfico de películas
+    crearGraficoPeliculas();
+    
+    // Crear gráfico de tipos de asiento
+    crearGraficoTiposAsiento();
+    
+    // Crear gráfico de ventas por día
+    crearGraficoPorDia();
+}
+
+// Función para reemplazar un canvas viejo por uno nuevo
+function reemplazarCanvas(canvasId, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    // Eliminar el canvas anterior
+    const canvasViejo = document.getElementById(canvasId);
+    if (canvasViejo) {
+        canvasViejo.remove();
+    }
+    
+    // Crear un nuevo canvas
+    const canvasNuevo = document.createElement('canvas');
+    canvasNuevo.id = canvasId;
+    container.appendChild(canvasNuevo);
+}
+
+// Función para crear el gráfico de películas
+function crearGraficoPeliculas() {
+    const canvas = document.getElementById('chartPeliculas');
+    if (!canvas || datosPeliculas.length === 0) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Ordenar películas por ingresos de mayor a menor
+    const peliculasOrdenadas = [...datosPeliculas]
+        .sort((a, b) => b.totalIngresos - a.totalIngresos)
+        .slice(0, 7); // Mostrar solo las 7 películas con más ingresos
+    
+    // Abreviar títulos largos para mejor visualización
+    const labels = peliculasOrdenadas.map(pelicula => {
+        const titulo = pelicula.titulo || 'Sin título';
+        return titulo.length > 20 ? titulo.substring(0, 17) + '...' : titulo;
+    });
+    
+    const data = peliculasOrdenadas.map(pelicula => pelicula.totalIngresos || 0);
+    const backgroundColors = colores.slice(0, peliculasOrdenadas.length);
+    
+    // Calcular el valor máximo para el eje Y
+    const maxIngreso = Math.max(...data) * 1.2; // 20% más alto para dar espacio
+    
+    // Crear gráfico
     if (chartPeliculas) {
         chartPeliculas.destroy();
-        chartPeliculas = null;
     }
     
-    if (chartTipoAsiento) {
-        chartTipoAsiento.destroy();
-        chartTipoAsiento = null;
-    }
-    
-    if (chartPorDia) {
-        chartPorDia.destroy();
-        chartPorDia = null;
-    }
-    
-    // Inicializar gráfico de películas
-    const ctxPeliculas = document.getElementById('chartPeliculas');
-    if (ctxPeliculas) {
-        const peliculasOrdenadas = [...datosPeliculas]
-            .sort((a, b) => b.totalIngresos - a.totalIngresos)
-            .slice(0, 7); // Mostrar solo las 7 películas con más ingresos
-        
-        const labels = peliculasOrdenadas.map(pelicula => pelicula.titulo || 'Sin título');
-        const data = peliculasOrdenadas.map(pelicula => pelicula.totalIngresos || 0);
-        const backgroundColors = colores.slice(0, peliculasOrdenadas.length);
-        
-        // Encontrar el valor máximo para establecer el límite del eje Y
-        const maxIngreso = Math.max(...data) * 1.1; // 10% más que el valor máximo
-        
-        chartPeliculas = new Chart(ctxPeliculas, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Ingresos (€)',
-                    data: data,
-                    backgroundColor: backgroundColors,
-                    borderColor: backgroundColors.map(color => color),
-                    borderWidth: 1
-                }]
+    chartPeliculas = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Ingresos',
+                data: data,
+                backgroundColor: backgroundColors,
+                borderColor: 'rgba(0, 0, 0, 0.1)',
+                borderWidth: 1,
+                barPercentage: 0.7,
+                categoryPercentage: 0.8
+            }]
+        },
+        options: {
+            animation: {
+                duration: 0 // Desactivar animaciones para evitar problemas al hacer hover
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: maxIngreso, // Establecer límite máximo fijo
-                        ticks: {
-                            callback: function(value) {
-                                return formatoMoneda.format(value);
-                            }
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            maxRotation: 45,
-                            minRotation: 45
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: maxIngreso,
+                    ticks: {
+                        callback: function(value) {
+                            return formatoMoneda.format(value);
                         }
                     }
                 },
-                plugins: {
-                    legend: {
+                x: {
+                    grid: {
                         display: false
                     },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return formatoMoneda.format(context.raw);
-                            }
-                        }
+                    ticks: {
+                        font: {
+                            size: 11
+                        },
+                        autoSkip: false,
+                        maxRotation: 45,
+                        minRotation: 45
                     }
                 }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            // Mostrar el título completo en el tooltip
+                            return peliculasOrdenadas[context[0].dataIndex].titulo;
+                        },
+                        label: function(context) {
+                            return 'Ingresos: ' + formatoMoneda.format(context.raw);
+                        },
+                        afterLabel: function(context) {
+                            return 'Entradas: ' + peliculasOrdenadas[context.dataIndex].totalEntradas;
+                        }
+                    }
+                },
+                legend: {
+                    display: false
+                }
             }
-        });
+        }
+    });
+}
+
+// Función para crear el gráfico de tipos de asiento
+function crearGraficoTiposAsiento() {
+    const canvas = document.getElementById('chartTipoAsiento');
+    if (!canvas || datosTipoAsiento.length === 0) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    const labels = datosTipoAsiento.map(tipo => tipo.tipo || 'Desconocido');
+    const data = datosTipoAsiento.map(tipo => tipo.totalIngresos || 0);
+    const backgroundColors = colores.slice(0, datosTipoAsiento.length);
+    
+    // Crear gráfico
+    if (chartTipoAsiento) {
+        chartTipoAsiento.destroy();
     }
     
-    // Inicializar gráfico de tipos de asiento
-    const ctxTipoAsiento = document.getElementById('chartTipoAsiento');
-    if (ctxTipoAsiento && datosTipoAsiento.length > 0) {
-        const labels = datosTipoAsiento.map(tipo => tipo.tipo || 'Desconocido');
-        const data = datosTipoAsiento.map(tipo => tipo.totalIngresos || 0);
-        const backgroundColors = colores.slice(0, datosTipoAsiento.length);
-        
-        chartTipoAsiento = new Chart(ctxTipoAsiento, {
-            type: 'pie',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: backgroundColors,
-                    borderColor: backgroundColors.map(color => color),
-                    borderWidth: 1
-                }]
+    chartTipoAsiento = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: backgroundColors,
+                borderColor: 'rgba(255, 255, 255, 0.5)',
+                borderWidth: 2,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            animation: {
+                duration: 500 // Reducir la duración de las animaciones
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const value = context.raw;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
-                                return `${formatoMoneda.format(value)} (${percentage}%)`;
-                            }
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const tipo = datosTipoAsiento[context.dataIndex];
+                            const value = context.raw;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return [
+                                `${tipo.tipo}: ${formatoMoneda.format(value)} (${percentage}%)`,
+                                `Entradas: ${tipo.totalEntradas}`
+                            ];
+                        }
+                    }
+                },
+                legend: {
+                    position: 'right',
+                    labels: {
+                        padding: 20,
+                        font: {
+                            size: 12
+                        },
+                        generateLabels: function(chart) {
+                            const labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                            labels.forEach((label, i) => {
+                                const tipo = datosTipoAsiento[i];
+                                const ingresos = formatoMoneda.format(tipo.totalIngresos);
+                                label.text = `${label.text}: ${ingresos}`;
+                            });
+                            return labels;
                         }
                     }
                 }
             }
-        });
+        }
+    });
+}
+
+// Función para crear el gráfico de ventas por día
+function crearGraficoPorDia() {
+    const canvas = document.getElementById('chartPorDia');
+    if (!canvas || datosPorDia.length === 0) return;
+    
+    const ctx = canvas.getContext('2d');
+    
+    const labels = datosPorDia.map(dia => dia.fecha || 'Fecha desconocida');
+    const dataIngresos = datosPorDia.map(dia => dia.totalIngresos || 0);
+    const dataEntradas = datosPorDia.map(dia => dia.totalEntradas || 0);
+    
+    // Calcular valores máximos para ejes Y
+    const maxIngreso = Math.max(...dataIngresos) * 1.2;
+    const maxEntradas = Math.max(...dataEntradas) * 1.2;
+    
+    // Crear gráfico
+    if (chartPorDia) {
+        chartPorDia.destroy();
     }
     
-    // Inicializar gráfico de ventas por día
-    const ctxPorDia = document.getElementById('chartPorDia');
-    if (ctxPorDia && datosPorDia.length > 0) {
-        const labels = datosPorDia.map(dia => dia.fecha || 'Fecha desconocida');
-        const dataIngresos = datosPorDia.map(dia => dia.totalIngresos || 0);
-        const dataEntradas = datosPorDia.map(dia => dia.totalEntradas || 0);
-        
-        // Encontrar valores máximos para establecer límites de ejes
-        const maxIngreso = Math.max(...dataIngresos) * 1.1;
-        const maxEntradas = Math.max(...dataEntradas) * 1.1;
-        
-        chartPorDia = new Chart(ctxPorDia, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Ingresos',
-                        data: dataIngresos,
-                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
-                        borderColor: 'rgba(76, 175, 80, 1)',
-                        borderWidth: 2,
-                        yAxisID: 'y',
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Entradas',
-                        data: dataEntradas,
-                        backgroundColor: 'rgba(33, 150, 243, 0.2)',
-                        borderColor: 'rgba(33, 150, 243, 1)',
-                        borderWidth: 2,
-                        yAxisID: 'y1',
-                        tension: 0.4
-                    }
-                ]
+    chartPorDia = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Ingresos',
+                    data: dataIngresos,
+                    backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                    borderColor: 'rgba(76, 175, 80, 1)',
+                    borderWidth: 2,
+                    fill: true,
+                    yAxisID: 'y',
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                },
+                {
+                    label: 'Entradas',
+                    data: dataEntradas,
+                    backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                    borderColor: 'rgba(33, 150, 243, 1)',
+                    borderWidth: 2,
+                    fill: true,
+                    yAxisID: 'y1',
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }
+            ]
+        },
+        options: {
+            animation: {
+                duration: 500 // Reducir la duración de las animaciones
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        type: 'linear',
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    beginAtZero: true,
+                    max: maxIngreso,
+                    title: {
                         display: true,
-                        position: 'left',
-                        beginAtZero: true,
-                        max: maxIngreso, // Establecer límite máximo fijo
-                        title: {
-                            display: true,
-                            text: 'Ingresos (€)'
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return formatoMoneda.format(value);
+                        text: 'Ingresos (€)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return formatoMoneda.format(value);
+                        }
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    beginAtZero: true,
+                    max: maxEntradas,
+                    title: {
+                        display: true,
+                        text: 'Entradas'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            const value = context.raw;
+                            if (label === 'Ingresos') {
+                                return label + ': ' + formatoMoneda.format(value);
                             }
+                            return label + ': ' + value;
                         }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        beginAtZero: true,
-                        max: maxEntradas, // Establecer límite máximo fijo
-                        title: {
-                            display: true,
-                            text: 'Entradas'
-                        },
-                        grid: {
-                            drawOnChartArea: false
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            maxRotation: 45,
-                            minRotation: 45
-                        }
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    align: 'center',
+                    labels: {
+                        boxWidth: 15,
+                        padding: 15
                     }
                 }
             }
-        });
-    }
+        }
+    });
 }
 
 // Manejar los botones de cambio de tabla
@@ -488,13 +628,51 @@ async function inicializar() {
         cargarVentasPorDia()
     ]);
     
+    // Modificar el HTML para incluir contenedores para los canvas
+    prepararContenedoresGraficos();
+    
     // Inicializar gráficos solo si tenemos datos
     if (peliculasOk || tiposOk || diasOk) {
-        // Usar requestAnimationFrame para asegurar que el DOM está listo
-        window.requestAnimationFrame(() => {
+        // Usar un pequeño retraso para asegurar que el DOM está actualizado
+        setTimeout(() => {
             inicializarGraficos();
-        });
+        }, 100);
     }
+}
+
+// Función para preparar los contenedores de gráficos
+function prepararContenedoresGraficos() {
+    // Preparar contenedor para gráfico de películas
+    prepararContenedor('chartPeliculas', 'chart-peliculas-container');
+    
+    // Preparar contenedor para gráfico de tipos de asiento
+    prepararContenedor('chartTipoAsiento', 'chart-tipoasiento-container');
+    
+    // Preparar contenedor para gráfico por día
+    prepararContenedor('chartPorDia', 'chart-pordia-container');
+}
+
+// Función auxiliar para preparar un contenedor de gráfico
+function prepararContenedor(canvasId, containerId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const parent = canvas.parentElement;
+    
+    // Si ya existe el contenedor, no hacer nada
+    if (parent.id === containerId) return;
+    
+    // Crear contenedor
+    const container = document.createElement('div');
+    container.id = containerId;
+    container.style.width = '100%';
+    container.style.height = '100%';
+    
+    // Reemplazar el canvas con el contenedor
+    parent.replaceChild(container, canvas);
+    
+    // Añadir el canvas al contenedor
+    container.appendChild(canvas);
 }
 
 // Iniciar cuando el DOM esté listo
