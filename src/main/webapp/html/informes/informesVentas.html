@@ -74,19 +74,26 @@
                 <h2>Informes Gráficos</h2>
                 <p>Visualice sus datos de ventas en gráficos interactivos.</p>
             </div>
+            <!-- Modificar la sección de gráficos en informesVentas.html -->
             <div class="charts-section">
                 <div class="chart-box">
                     <div class="chart-title">Ventas por Película</div>
-                    <canvas id="chartPeliculas"></canvas>
+                    <div id="chart-peliculas-container" style="width: 100%; height: 350px;">
+                        <canvas id="chartPeliculas"></canvas>
+                    </div>
                 </div>
                 <div class="chart-box">
                     <div class="chart-title">Ventas por Tipo de Asiento</div>
-                    <canvas id="chartTipoAsiento"></canvas>
+                    <div id="chart-tipoasiento-container" style="width: 100%; height: 350px;">
+                        <canvas id="chartTipoAsiento"></canvas>
+                    </div>
                 </div>
             </div>
             <div class="chart-container">
                 <div class="chart-title">Ventas por Día</div>
-                <canvas id="chartPorDia"></canvas>
+                <div id="chart-pordia-container" style="width: 100%; height: 400px;">
+                    <canvas id="chartPorDia"></canvas>
+                </div>
             </div>
         </section>
 
