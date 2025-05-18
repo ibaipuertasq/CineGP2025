@@ -34,6 +34,9 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
+    - name: Replace DB_URL in datanucleus.properties
+      run: sed -i "s|\${DB_URL}|$DB_URL|g" src/main/resources/datanucleus.properties
+
     - name: Prepare database for integration tests
       run: | 
         sudo /etc/init.d/mysql start
