@@ -32,8 +32,6 @@ import com.github.noconnor.junitperf.JUnitPerfRule;
 import com.github.noconnor.junitperf.reporting.providers.HtmlReportGenerator;
 import com.github.noconnor.junitperf.JUnitPerfTest;
 import es.deusto.spq.server.Main;
-import es.deusto.spq.server.Resource.AsientoDTO;
-import es.deusto.spq.server.Resource.CompraEntradaDTO;
 import es.deusto.spq.server.jdo.Pelicula;
 import es.deusto.spq.server.jdo.Sala;
 import es.deusto.spq.server.jdo.Asiento;
